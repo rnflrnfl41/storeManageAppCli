@@ -1,5 +1,38 @@
 {
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "lib": ["es2017"],
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "strict": true,
+    "module": "esnext",
+    "target": "esnext",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["*"],
+      "@screens/*": ["app/screens/*"],
+      "@components/*": ["app/components/*"],
+      "@components": ["app/components"],
+      "@features/*": ["app/features/*"],
+      "@shared/*": ["app/shared/*"],
+      "@store": ["app/store"],
+      "@store/*": ["app/store/*"],
+      "@assets/*": ["assets/*"],
+      "@constants/*": ["app/shared/constants/*"],
+      "@hooks/*": ["app/hooks/*"],
+      "@utils/*": ["app/shared/utils/*"],
+      "@types/*": ["app/shared/types/*"],
+      "@types": ["app/shared/types"],
+      "@services/*": ["app/services/*"],
+      "@styles": ["app/shared/styles"],
+      "@styles/*": ["app/shared/styles/*"]
+    }
+  },
   "extends": "@react-native/typescript-config",
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
   "exclude": ["**/node_modules", "**/Pods"]
 }
