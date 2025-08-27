@@ -22,9 +22,7 @@ let failedQueue: Array<{
 
 import Config from 'react-native-config';
 
-console.log(Config.PUBLIC_API_URL);
-
-const baseUrl = Config.PUBLIC_API_URL || "http://10.0.2.2:8081/api";
+const baseUrl = Config.PUBLIC_API_URL || "http://10.0.2.2:8080/api";
 
 // 큐에 쌓인 요청들을 처리하는 함수
 const processQueue = (error: any, token: string | null = null) => {
