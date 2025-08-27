@@ -1,12 +1,5 @@
 // 공통 상수 정의
 
-// API 관련
-export const API_CONFIG = {
-  BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api',
-  TIMEOUT: 10000,
-  RETRY_ATTEMPTS: 3,
-} as const;
-
 // 앱 설정
 export const APP_CONFIG = {
   APP_NAME: '스토어 관리 앱',
