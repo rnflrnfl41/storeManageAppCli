@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
+import Config from 'react-native-config';
 
 interface JWTPayload {
   exp: number;  // 만료시간 (Unix timestamp)
@@ -17,7 +18,7 @@ class TokenManager {
 
   // 암호화 키 가져오기 (환경변수 우선, 없으면 기본 키 사용)
   private getEncryptionKey(): string {
-    return process.env.EXPO_PUBLIC_TOKEN_SECRET_KEY || '8d990b708713f0ea2ee994ca8d22a5be9a6056e58535c8263af106692f82d5ff';
+    return Config.PUBLIC_TOKEN_SECRET_KEY || '8d990b708713f0ea2ee994ca8d22a5be9a6056e58535c8263af106692f82d5ff';
   }
 
   // 간단한 XOR 암호화 (안정적이고 빠름)
