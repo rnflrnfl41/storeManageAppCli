@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from '@utils/navigation';
+import { router } from '@utils/navigateUtils';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Dimensions,
@@ -19,8 +19,8 @@ import { useOrientation } from '@hooks/useOrientation';
 import { publicAxiosInstance } from '@services/apiClient';
 import { tokenManager } from '@services/tokenManager';
 import type { LoginRequest } from '@shared/types';
-import { loginSuccess } from '@store/authSlice';
 import { createResponsiveLoginStyles, loginStyles } from '@styles';
+import { setUserInfo } from '@services/authService';
 
 const { width } = Dimensions.get('window');
 
@@ -36,7 +36,6 @@ type FormErrors = {
 };
 
 export default function Login() {
-  const dispatch = useDispatch();
 
   useEffect(() => {
     // 저장된 로그인 ID 불러오기
@@ -113,7 +112,7 @@ export default function Login() {
       
       // userInfo에서 토큰을 제외한 정보만 Redux에 저장
       const { accessToken, refreshToken, ...userInfo } = responseData;
-      dispatch(loginSuccess(userInfo));
+      setUserInfo(userInfo);
 
       // 아이디 기억하기 처리
       if (formState.rememberMe) {

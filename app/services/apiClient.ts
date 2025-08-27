@@ -1,6 +1,5 @@
 import { DEFAULT_TIMEOUT } from "@shared/constants";
 import type { ApiErrorResponse } from "@shared/types";
-import { loginFailure, logout } from "@store/authSlice";
 import { store } from "@store/index";
 import { startLoading, stopLoading } from "@store/loadingSlice";
 import { showError, showSuccess } from "@utils/alertUtils";
@@ -11,7 +10,8 @@ import type {
 } from "axios";
 import axios from "axios";
 import { tokenManager } from "./tokenManager";
-import { router } from '@utils/navigation';
+import { router } from '@utils/navigateUtils';
+import { logout } from "@services/authService";
 
 // refresh token 요청 중인지 확인하는 플래그
 let isRefreshing = false;
@@ -60,7 +60,7 @@ const refreshAccessToken = async (): Promise<string> => {
 
     return accessToken;
   } catch (error: any) {
-    store.dispatch(loginFailure());
+    logout();
     throw error;
   }
 };
@@ -69,7 +69,7 @@ const refreshAccessToken = async (): Promise<string> => {
 const clearUserInfo = async (
   reason: string = "세션이 만료되었습니다. 다시 로그인해주세요."
 ) => {
-  store.dispatch(logout());
+  logout();
 
   showError(reason);
 

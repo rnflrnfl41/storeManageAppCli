@@ -1,31 +1,20 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { ThemedText } from '@components/ThemedText';
-import { RootState } from '@store';
-import { logout } from '@store/authSlice';
+import { logout } from '@services/authService';
 import { cardStyles } from '@styles';
-import { router } from '@utils/navigation';
+import { router } from '@utils/navigateUtils';
+import { debugAsyncStorage } from '@utils/debugUtils';
+
 
 export default function HomeScreen() {
-  const dispatch = useDispatch();
-  const { userInfo } = useSelector((state: RootState) => state.auth);
 
-  // 인증 상태 체크
   useEffect(() => {
-    if (!userInfo) {
-      console.log('인증되지 않은 사용자, 로그인 화면으로 이동');
-      router.replace('Login');
-    }
-  }, [userInfo, router]);
-
-  // 인증되지 않은 사용자는 로딩 표시
-  if (!userInfo) {
-    return null; // 또는 로딩 스피너 표시
-  }
+      debugAsyncStorage();
+    }, []);
 
   const handleLogout = () => {
     Alert.alert(
@@ -37,7 +26,7 @@ export default function HomeScreen() {
           text: '로그아웃',
           style: 'destructive',
           onPress: () => {
-            dispatch(logout());
+            logout();
             router.replace("Login");
           }
         }
@@ -57,7 +46,7 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View style={styles.userInfo}>
             <ThemedText type="title" style={styles.welcomeText}>
-              안녕하세요, {userInfo?.userName || '사용자'}님!
+              안녕하세요, 사용자님!
             </ThemedText>
             <ThemedText style={styles.subtitle}>
               오늘도 좋은 하루 되세요 ✨

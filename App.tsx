@@ -8,7 +8,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '@screens/HomeScreen';
 import LoginScreen from '@screens/LoginScreen';
 import { RootStackParamList } from '@types';
-import { navigationRef } from '@utils/navigation';
+import { navigationRef } from '@/app/shared/utils/navigateUtils';
 
 function App() {
   const Stack = createNativeStackNavigator<RootStackParamList>();
