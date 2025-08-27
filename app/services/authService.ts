@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserInfo } from '@types';
 import { tokenManager } from '@services/tokenManager';
 
-const USER_INFO_KEY = 'USER_INFO';
+const USER_INFO_KEY = 'userInfo';
 
 /** 저장 */
 export const setUserInfo = async (user: UserInfo) => {
