@@ -10,7 +10,6 @@ export const selectStoreId = (state: RootState) => state.auth.userInfo?.storeId;
 export const selectUserName = (state: RootState) => state.auth.userInfo?.userName;
 
 // 파생된 상태 selectors
-export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenticated;
 export const selectIsLoading = (state: RootState) => false; // 로딩 상태는 컴포넌트에서 관리
 
 // 복합 selectors

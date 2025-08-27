@@ -4,7 +4,6 @@ export interface UserInfo {
   loginId: string;
   storeId: number;
   userName: string;
-  accessToken: string;
 }
 
 export interface LoginRequest {
