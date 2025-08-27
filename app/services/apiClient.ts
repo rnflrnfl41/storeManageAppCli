@@ -20,7 +20,11 @@ let failedQueue: Array<{
   reject: (error: any) => void;
 }> = [];
 
-const baseUrl = process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080/api";
+import Config from 'react-native-config';
+
+console.log(Config.PUBLIC_API_URL);
+
+const baseUrl = Config.PUBLIC_API_URL || "http://10.0.2.2:8081/api";
 
 // 큐에 쌓인 요청들을 처리하는 함수
 const processQueue = (error: any, token: string | null = null) => {
@@ -53,37 +57,11 @@ const refreshAccessToken = async (): Promise<string> => {
     // 인터셉터에서 이미 response.data.data로 변환됨
     const { accessToken, refreshToken: newRefreshToken } = response.data;
 
-    // 새로운 토큰들을 Keychain에 저장
+    // 새로운 토큰들 저장
     await tokenManager.saveTokensFromResponse(accessToken, newRefreshToken);
 
     return accessToken;
   } catch (error: any) {
-    // 서버에서 보낸 에러 메시지가 있는 경우 우선 처리
-    const errorData = error.response?.data;
-    if (errorData?.message) {
-      showError(errorData.message);
-    } else {
-      // 서버에서 메시지를 보내지 않은 예외적인 경우만 클라이언트에서 처리
-      const status = error.response?.status;
-
-      switch (status) {
-        case 500:
-        case 502:
-        case 503:
-          // 서버 오류
-          showError(
-            "서버 오류로 인해 토큰 갱신에 실패했습니다. 잠시 후 다시 시도해주세요."
-          );
-          break;
-        default:
-          // 네트워크 연결을 확인해주세요.");
-          if (!error.response) {
-            showError("네트워크 연결을 확인해주세요.");
-          }
-      }
-    }
-
-    // 모든 refresh token 실패 시 로그아웃 처리
     store.dispatch(loginFailure());
     throw error;
   }
@@ -115,6 +93,16 @@ const handleServerMessage = async (response: AxiosResponse) => {
 const handleServerError = async (error: AxiosError<ApiErrorResponse>) => {
   const status = error.response?.status;
   const errorData = error.response?.data;
+
+  console.log('=== API Error ===');
+    console.log('Error message:', error.message);
+    console.log('Error code:', error.code);
+    console.log('Full URL:', `${error.config?.baseURL || ''}${error.config?.url || ''}`);
+    console.log('Method:', error.config?.method);
+    console.log('Response status:', error.response?.status);
+    console.log('Response data:', error.response?.data);
+    console.log('Network error:', !error.response);
+    console.log('================');
 
   // 서버에서 보낸 에러 메시지가 있는 경우
   if (errorData?.message) {
@@ -189,6 +177,12 @@ publicAxiosInstance.interceptors.request.use(
 // public 인스턴스용 응답 인터셉터 (로딩 종료 + 성공/에러 메시지 처리)
 publicAxiosInstance.interceptors.response.use(
   async (response: AxiosResponse) => {
+    console.log('=== API Response ===');
+    console.log('URL:', response.config.url);
+    console.log('Status:', response.status);
+    console.log('Data:', response.data);
+    console.log('==================');
+    
     store.dispatch(stopLoading());
 
     // 서버에서 성공 메시지를 보낸 경우 처리
@@ -246,6 +240,11 @@ axiosInstance.interceptors.request.use(
 // 응답 인터셉터 설정 (로딩 종료 + 토큰 갱신 + 에러 처리)
 axiosInstance.interceptors.response.use(
   async (response: AxiosResponse) => {
+    console.log('=== API Response ===');
+    console.log('URL:', response.config.url);
+    console.log('Status:', response.status);
+    console.log('Data:', response.data);
+    console.log('==================');
     store.dispatch(stopLoading());
 
     // 서버에서 성공 메시지를 보낸 경우 처리
@@ -258,6 +257,7 @@ axiosInstance.interceptors.response.use(
   },
 
   async (error: AxiosError<ApiErrorResponse>) => {
+
     store.dispatch(stopLoading());
 
     const originalRequest = error.config;
