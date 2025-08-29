@@ -162,7 +162,6 @@ class TokenManager {
         refreshToken: currentRefreshToken,
       });
 
-      // 새로운 refreshToken만 저장 (인터셉터에서 이미 response.data.data로 변환됨)
       const { refreshToken: newRefreshToken } = response.data;
       await this.saveRefreshToken(newRefreshToken);
       
