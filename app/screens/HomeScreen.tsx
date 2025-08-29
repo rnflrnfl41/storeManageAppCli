@@ -1,14 +1,17 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, TouchableOpacity, View, Image } from 'react-native';
+import { Alert, ScrollView, StyleSheet, TouchableOpacity, View, Image, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Calendar } from 'react-native-calendars';
+import AddScheduleModal from '@components/AddScheduleModal';
+import '../config/calendarConfig';
+import { calendarTheme } from '@shared/styles/CalendarStyles';
+import { homeScreenStyles } from '@shared/styles/HomeScreenStyles';
 
 import { ThemedText } from '@components/ThemedText';
 import { logout } from '@services/authService';
-import { cardStyles } from '@styles';
 import { router } from '@utils/navigateUtils';
-import { debugAsyncStorage } from '@utils/debugUtils';
 
 
 interface Schedule {
@@ -16,7 +19,7 @@ interface Schedule {
   date: string;
   time: string;
   title: string;
-  type: 'appointment' | 'task' | 'reminder';
+  completed: boolean;
 }
 
 export default function HomeScreen() {
@@ -24,13 +27,19 @@ export default function HomeScreen() {
   const [userName, setUserName] = useState('사용자');
   const [storeName, setStoreName] = useState('Hair City');
 
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showAllSchedules, setShowAllSchedules] = useState(false);
+  const [calendarVisible, setCalendarVisible] = useState(false);
 
   useEffect(() => {
     loadUserData();
   }, []);
 
+  /**
+   * AsyncStorage에서 사용자 정보를 불러와서 사용자명과 매장명을 설정
+   */
   const loadUserData = async () => {
     try {
       const storedUserInfo = await AsyncStorage.getItem('userInfo');
@@ -46,6 +55,9 @@ export default function HomeScreen() {
 
 
 
+  /**
+   * 로그아웃 확인 알림을 보여주고, 확인 시 로그아웃 처리 후 로그인 화면으로 이동
+   */
   const handleLogout = () => {
     Alert.alert(
       '로그아웃',
@@ -64,53 +76,133 @@ export default function HomeScreen() {
     );
   };
 
+  /**
+   * 하단 독바나 퀴 메뉴의 기능 버튼 클릭 시 호출되는 함수
+   * 현재는 로그만 출력하지만 추후 각 기능별 화면 이동 기능 추가 예정
+   */
   const handleFeaturePress = (feature: string) => {
     setActiveTab(feature);
     console.log(`${feature} 기능 선택됨`);
   };
 
-  const handleDateSelect = (date: Date) => {
-    setSelectedDate(date);
-  };
-
+  /**
+   * 일정 추가 모달을 열기
+   */
   const handleAddSchedule = () => {
-    // TODO: 일정 추가 모달 열기
-    console.log('일정 추가');
+    setModalVisible(true);
   };
 
-  const getTodaySchedules = () => {
-    const today = new Date().toDateString();
-    return schedules.filter(schedule => 
-      new Date(schedule.date).toDateString() === today
+  /**
+   * 새로운 일정을 일정 목록에 추가
+   */
+  const handleSaveSchedule = (schedule: Schedule) => {
+    setSchedules(prev => [...prev, schedule]);
+  };
+
+  /**
+   * 지정된 ID의 일정을 일정 목록에서 삭제
+   */
+  const handleDeleteSchedule = (scheduleId: string) => {
+    setSchedules(prev => prev.filter(schedule => schedule.id !== scheduleId));
+  };
+
+  /**
+   * 지정된 ID의 일정의 완료 상태를 토글 (완료 ↔ 미완료)
+   */
+  const handleToggleComplete = (scheduleId: string) => {
+    setSchedules(prev => 
+      prev.map(schedule => 
+        schedule.id === scheduleId 
+          ? { ...schedule, completed: !schedule.completed }
+          : schedule
+      )
     );
   };
 
+  /**
+   * 일정 추가 모달을 닫기
+   */
+  const handleCloseModal = () => {
+    setModalVisible(false);
+  };
+
+  /**
+   * 선택된 날짜에 해당하는 일정들을 시간 순서대로 정렬하여 반환
+   */
+  const getSelectedDateSchedules = () => {
+    const selectedDateString = selectedDate.toDateString();
+    return schedules
+      .filter(schedule => 
+        new Date(schedule.date).toDateString() === selectedDateString
+      )
+      .sort((a, b) => {
+        // 시간을 24시간 형식으로 비교
+        const timeA = a.time.replace(':', '');
+        const timeB = b.time.replace(':', '');
+        return parseInt(timeA) - parseInt(timeB);
+      });
+  };
+
+  /**
+   * 날짜 네비게이션 - 이전/다음 날짜로 이동
+   * 날짜 변경 시 더 보기 상태를 초기화하여 3개만 보이도록 설정
+   */
+  const handleDateChange = (direction: 'prev' | 'next') => {
+    const newDate = new Date(selectedDate);
+    if (direction === 'prev') {
+      newDate.setDate(newDate.getDate() - 1);
+    } else {
+      newDate.setDate(newDate.getDate() + 1);
+    }
+    setSelectedDate(newDate);
+    setShowAllSchedules(false); // 날짜 변경 시 더 보기 상태 초기화
+  };
+
+  /**
+   * 캘린더 모달 열기 - 날짜 표시 영역 클릭 시 호출
+   */
+  const openCalendar = () => {
+    setCalendarVisible(true);
+  };
+
+  /**
+   * 캘린더에서 날짜 선택 시 호출
+   */
+  const handleCalendarDateSelect = (day: any) => {
+    setSelectedDate(new Date(day.dateString));
+    setCalendarVisible(false);
+    setShowAllSchedules(false);
+  };
+
+  /**
+   * 날짜를 한국어 형식으로 포맷팅 (ex: 1월 15일 (금))
+   */
   const formatDate = (date: Date) => {
     const month = date.getMonth() + 1;
     const day = date.getDate();
     const weekDay = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
-    return `${month}월 ${day}일 (주${weekDay})`;
+    return `${month}월 ${day}일 (${weekDay})`;
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={styles.mainContainer}>
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={homeScreenStyles.safeArea} edges={['top']}>
+      <View style={homeScreenStyles.mainContainer}>
+        <ScrollView style={homeScreenStyles.container} showsVerticalScrollIndicator={false}>
           {/* 헤더 영역 */}
-          <View style={styles.header}>
-            <View style={styles.storeInfo}>
+          <View style={homeScreenStyles.header}>
+            <View style={homeScreenStyles.storeInfo}>
               <Image 
                 source={require('../../assets/haircity-logo.png')} 
-                style={styles.logo}
+                style={homeScreenStyles.logo}
                 resizeMode="contain"
               />
-              <View style={styles.storeDetails}>
-                <ThemedText style={styles.storeName}>{storeName}</ThemedText>
-                <ThemedText style={styles.userName}>{userName}님</ThemedText>
+              <View style={homeScreenStyles.storeDetails}>
+                <ThemedText style={homeScreenStyles.storeName}>{storeName}</ThemedText>
+                <ThemedText style={homeScreenStyles.userName}>{userName}님</ThemedText>
               </View>
             </View>
             <TouchableOpacity
-              style={styles.logoutButton}
+              style={homeScreenStyles.logoutButton}
               onPress={handleLogout}
             >
               <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
@@ -118,85 +210,156 @@ export default function HomeScreen() {
           </View>
 
           {/* 오늘 매출 카드 */}
-          <View style={styles.salesCard}>
-            <ThemedText style={styles.salesLabel}>오늘 매출</ThemedText>
-            <ThemedText style={styles.salesValue}>₩0</ThemedText>
+          <View style={homeScreenStyles.salesCard}>
+            <ThemedText style={homeScreenStyles.salesLabel}>오늘 매출</ThemedText>
+            <ThemedText style={homeScreenStyles.salesValue}>₩0</ThemedText>
           </View>
 
           {/* Quick Menu */}
-          <View style={styles.quickMenuCard}>
-            <ThemedText style={styles.quickMenuTitle}>Quick Menu</ThemedText>
-            <View style={styles.quickMenuGrid}>
+          <View style={homeScreenStyles.quickMenuCard}>
+            <ThemedText style={homeScreenStyles.quickMenuTitle}>Quick Menu</ThemedText>
+            <View style={homeScreenStyles.quickMenuGrid}>
               <TouchableOpacity 
-                style={styles.quickMenuItem}
+                style={homeScreenStyles.quickMenuItem}
                 onPress={() => handleFeaturePress('매출 등록')}
               >
-                <View style={[styles.quickMenuIcon, { backgroundColor: '#4CAF50' }]}>
+                <View style={[homeScreenStyles.quickMenuIcon, { backgroundColor: '#4CAF50' }]}>
                   <Ionicons name="cash" size={24} color="white" />
                 </View>
-                <ThemedText style={styles.quickMenuLabel}>매출 등록</ThemedText>
+                <ThemedText style={homeScreenStyles.quickMenuLabel}>매출 등록</ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity 
-                style={styles.quickMenuItem}
+                style={homeScreenStyles.quickMenuItem}
                 onPress={() => handleFeaturePress('고객 등록')}
               >
-                <View style={[styles.quickMenuIcon, { backgroundColor: '#2196F3' }]}>
+                <View style={[homeScreenStyles.quickMenuIcon, { backgroundColor: '#2196F3' }]}>
                   <Ionicons name="person-add" size={24} color="white" />
                 </View>
-                <ThemedText style={styles.quickMenuLabel}>고객 등록</ThemedText>
+                <ThemedText style={homeScreenStyles.quickMenuLabel}>고객 등록</ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity 
-                style={styles.quickMenuItem}
+                style={homeScreenStyles.quickMenuItem}
                 onPress={() => handleFeaturePress('지출 등록')}
               >
-                <View style={[styles.quickMenuIcon, { backgroundColor: '#FF5722' }]}>
+                <View style={[homeScreenStyles.quickMenuIcon, { backgroundColor: '#FF5722' }]}>
                   <Ionicons name="card" size={24} color="white" />
                 </View>
-                <ThemedText style={styles.quickMenuLabel}>지출 등록</ThemedText>
+                <ThemedText style={homeScreenStyles.quickMenuLabel}>지출 등록</ThemedText>
               </TouchableOpacity>
             </View>
           </View>
 
           {/* 캘린더 및 일정 */}
-          <View style={styles.calendarCard}>
-            <View style={styles.calendarHeader}>
-              <ThemedText style={styles.calendarTitle}>오늘 일정</ThemedText>
+          <View style={homeScreenStyles.calendarCard}>
+            <View style={homeScreenStyles.calendarHeader}>
+              <ThemedText style={homeScreenStyles.calendarTitle}>일정</ThemedText>
               <TouchableOpacity 
-                style={styles.addScheduleButton}
+                style={homeScreenStyles.addScheduleButton}
                 onPress={handleAddSchedule}
               >
                 <Ionicons name="add" size={20} color="#007AFF" />
               </TouchableOpacity>
             </View>
             
-            <View style={styles.dateInfo}>
-              <ThemedText style={styles.dateText}>{formatDate(new Date())}</ThemedText>
+            <View style={homeScreenStyles.dateNavigation}>
+              <TouchableOpacity 
+                style={homeScreenStyles.dateNavButton}
+                onPress={() => handleDateChange('prev')}
+              >
+                <Ionicons name="chevron-back" size={20} color="#007AFF" />
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={homeScreenStyles.dateDisplay} onPress={openCalendar}>
+                <View style={homeScreenStyles.dateContainer}>
+                  <ThemedText style={homeScreenStyles.dateText}>{formatDate(selectedDate)}</ThemedText>
+                  {selectedDate.toDateString() === new Date().toDateString() && (
+                    <View style={homeScreenStyles.todayBadge}>
+                      <ThemedText style={homeScreenStyles.todayBadgeText}>오늘</ThemedText>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={homeScreenStyles.dateNavButton}
+                onPress={() => handleDateChange('next')}
+              >
+                <Ionicons name="chevron-forward" size={20} color="#007AFF" />
+              </TouchableOpacity>
             </View>
 
-            <View style={styles.scheduleList}>
-              {getTodaySchedules().length > 0 ? (
-                getTodaySchedules().map((schedule) => (
-                  <View key={schedule.id} style={styles.scheduleItem}>
-                    <View style={styles.scheduleTime}>
-                      <ThemedText style={styles.timeText}>{schedule.time}</ThemedText>
-                    </View>
-                    <View style={styles.scheduleContent}>
-                      <ThemedText style={styles.scheduleTitle}>{schedule.title}</ThemedText>
-                      <ThemedText style={styles.scheduleType}>{schedule.type}</ThemedText>
-                    </View>
-                  </View>
-                ))
+            <View style={homeScreenStyles.scheduleList}>
+              {getSelectedDateSchedules().length > 0 ? (
+                <>
+                  {(showAllSchedules ? getSelectedDateSchedules() : getSelectedDateSchedules().slice(0, 3))
+                    .map((schedule) => (
+                      <View key={schedule.id} style={[
+                        homeScreenStyles.scheduleItem,
+                        schedule.completed && homeScreenStyles.scheduleItemCompleted
+                      ]}>
+                        <View style={homeScreenStyles.scheduleTime}>
+                          <ThemedText style={[
+                            homeScreenStyles.timeText,
+                            schedule.completed && homeScreenStyles.timeTextCompleted
+                          ]}>{schedule.time}</ThemedText>
+                        </View>
+                        <View style={homeScreenStyles.scheduleContent}>
+                          <ThemedText style={[
+                            homeScreenStyles.scheduleTitle,
+                            schedule.completed && homeScreenStyles.scheduleTitleCompleted
+                          ]}>{schedule.title}</ThemedText>
+                        </View>
+                        <View style={homeScreenStyles.scheduleActions}>
+                          <TouchableOpacity
+                            style={[
+                              homeScreenStyles.completeButton,
+                              schedule.completed && homeScreenStyles.completeButtonActive
+                            ]}
+                            onPress={() => handleToggleComplete(schedule.id)}
+                          >
+                            <Ionicons 
+                              name="checkmark" 
+                              size={14} 
+                              color={schedule.completed ? "white" : "#4CAF50"} 
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={homeScreenStyles.deleteButton}
+                            onPress={() => handleDeleteSchedule(schedule.id)}
+                          >
+                            <Ionicons name="close" size={14} color="#FF3B30" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))
+                  }
+                  {getSelectedDateSchedules().length > 3 && (
+                    <TouchableOpacity 
+                      style={homeScreenStyles.showMoreButton}
+                      onPress={() => setShowAllSchedules(!showAllSchedules)}
+                    >
+                      <ThemedText style={homeScreenStyles.showMoreText}>
+                        {showAllSchedules ? '접기' : '더보기'}
+                      </ThemedText>
+                      <Ionicons 
+                        name={showAllSchedules ? "chevron-up" : "chevron-down"} 
+                        size={16} 
+                        color="#007AFF" 
+                      />
+                    </TouchableOpacity>
+                  )}
+                </>
               ) : (
-                <View style={styles.noSchedule}>
+                <View style={homeScreenStyles.noSchedule}>
                   <Ionicons name="calendar-outline" size={32} color="#8E8E93" />
-                  <ThemedText style={styles.noScheduleText}>오늘 예정된 일정이 없습니다</ThemedText>
+                  <ThemedText style={homeScreenStyles.noScheduleText}>이 날짜에 예정된 일정이 없습니다</ThemedText>
                   <TouchableOpacity 
-                    style={styles.addFirstSchedule}
+                    style={homeScreenStyles.addFirstSchedule}
                     onPress={handleAddSchedule}
                   >
-                    <ThemedText style={styles.addFirstScheduleText}>일정 추가하기</ThemedText>
+                    <ThemedText style={homeScreenStyles.addFirstScheduleText}>일정 추가하기</ThemedText>
                   </TouchableOpacity>
                 </View>
               )}
@@ -204,13 +367,60 @@ export default function HomeScreen() {
           </View>
 
           {/* 하단 여백 (독바 공간 확보) */}
-          <View style={{ height: 120 }} />
+          <View style={{ height: 100 }} />
         </ScrollView>
 
+        <AddScheduleModal
+          visible={modalVisible}
+          onClose={handleCloseModal}
+          onSave={handleSaveSchedule}
+        />
+
+        {/* 캘린더 모달 */}
+        <Modal
+          visible={calendarVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setCalendarVisible(false)}
+        >
+          <TouchableOpacity 
+            style={homeScreenStyles.calendarModalOverlay}
+            activeOpacity={1}
+            onPress={() => setCalendarVisible(false)}
+          >
+            <TouchableOpacity 
+              style={homeScreenStyles.calendarModalContent}
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+            >
+              <View style={homeScreenStyles.calendarModalHeader}>
+                <ThemedText style={homeScreenStyles.calendarModalTitle}>날짜 선택</ThemedText>
+                <TouchableOpacity
+                  style={homeScreenStyles.calendarCloseButton}
+                  onPress={() => setCalendarVisible(false)}
+                >
+                  <Ionicons name="close" size={24} color="#8E8E93" />
+                </TouchableOpacity>
+              </View>
+              <Calendar
+                current={selectedDate.toISOString().split('T')[0]}
+                onDayPress={handleCalendarDateSelect}
+                markedDates={{
+                  [selectedDate.toISOString().split('T')[0]]: {
+                    selected: true,
+                    selectedColor: '#007AFF'
+                  }
+                }}
+                theme={calendarTheme}
+              />
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
+
         {/* 관리 메뉴 독바 - 하단 고정 */}
-        <View style={styles.dockContainer}>
+        <View style={homeScreenStyles.dockContainer}>
           <TouchableOpacity
-            style={styles.dockItem}
+            style={homeScreenStyles.dockItem}
             onPress={() => handleFeaturePress('매출 관리')}
           >
             <Ionicons 
@@ -219,13 +429,13 @@ export default function HomeScreen() {
               color={activeTab === '매출 관리' ? '#007AFF' : '#8E8E93'} 
             />
             <ThemedText style={[
-              styles.dockLabel, 
+              homeScreenStyles.dockLabel, 
               { color: activeTab === '매출 관리' ? '#007AFF' : '#8E8E93' }
             ]}>매출</ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.dockItem}
+            style={homeScreenStyles.dockItem}
             onPress={() => handleFeaturePress('지출 관리')}
           >
             <Ionicons 
@@ -234,13 +444,13 @@ export default function HomeScreen() {
               color={activeTab === '지출 관리' ? '#007AFF' : '#8E8E93'} 
             />
             <ThemedText style={[
-              styles.dockLabel, 
+              homeScreenStyles.dockLabel, 
               { color: activeTab === '지출 관리' ? '#007AFF' : '#8E8E93' }
             ]}>지출</ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.dockItem}
+            style={homeScreenStyles.dockItem}
             onPress={() => handleFeaturePress('홈')}
           >
             <Ionicons 
@@ -249,13 +459,13 @@ export default function HomeScreen() {
               color={activeTab === '홈' ? '#007AFF' : '#8E8E93'} 
             />
             <ThemedText style={[
-              styles.dockLabel, 
+              homeScreenStyles.dockLabel, 
               { color: activeTab === '홈' ? '#007AFF' : '#8E8E93' }
             ]}>홈</ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.dockItem}
+            style={homeScreenStyles.dockItem}
             onPress={() => handleFeaturePress('고객 관리')}
           >
             <Ionicons 
@@ -264,13 +474,13 @@ export default function HomeScreen() {
               color={activeTab === '고객 관리' ? '#007AFF' : '#8E8E93'} 
             />
             <ThemedText style={[
-              styles.dockLabel, 
+              homeScreenStyles.dockLabel, 
               { color: activeTab === '고객 관리' ? '#007AFF' : '#8E8E93' }
             ]}>고객</ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.dockItem}
+            style={homeScreenStyles.dockItem}
             onPress={() => handleFeaturePress('쿠폰 관리')}
           >
             <Ionicons 
@@ -279,7 +489,7 @@ export default function HomeScreen() {
               color={activeTab === '쿠폰 관리' ? '#007AFF' : '#8E8E93'} 
             />
             <ThemedText style={[
-              styles.dockLabel, 
+              homeScreenStyles.dockLabel, 
               { color: activeTab === '쿠폰 관리' ? '#007AFF' : '#8E8E93' }
             ]}>쿠폰</ThemedText>
           </TouchableOpacity>
@@ -289,264 +499,4 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  mainContainer: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    backgroundColor: 'white',
-  },
-  storeInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  logo: {
-    width: 40,
-    height: 40,
-    marginRight: 12,
-  },
-  storeDetails: {
-    flex: 1,
-  },
-  storeName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 2,
-  },
-  userName: {
-    fontSize: 13,
-    color: '#8E8E93',
-    fontWeight: '500',
-  },
 
-  logoutButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  salesCard: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    marginTop: 16,
-    paddingVertical: 24,
-    alignItems: 'center',
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  salesLabel: {
-    fontSize: 14,
-    color: '#8E8E93',
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  salesValue: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#007AFF',
-  },
-  quickMenuCard: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    marginTop: 16,
-    borderRadius: 12,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  quickMenuTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1A1A1A',
-    marginBottom: 16,
-  },
-  quickMenuGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  quickMenuItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  quickMenuIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  quickMenuLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#374151',
-    textAlign: 'center',
-  },
-  calendarCard: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    marginTop: 16,
-    borderRadius: 12,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  calendarHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  calendarTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1A1A1A',
-  },
-  addScheduleButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F0F8FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dateInfo: {
-    marginBottom: 16,
-  },
-  dateText: {
-    fontSize: 14,
-    color: '#007AFF',
-    fontWeight: '500',
-  },
-  scheduleList: {
-    minHeight: 100,
-  },
-  scheduleItem: {
-    flexDirection: 'row',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  scheduleTime: {
-    width: 60,
-    marginRight: 12,
-  },
-  timeText: {
-    fontSize: 12,
-    color: '#8E8E93',
-    fontWeight: '500',
-  },
-  scheduleContent: {
-    flex: 1,
-  },
-  scheduleTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#1A1A1A',
-    marginBottom: 2,
-  },
-  scheduleType: {
-    fontSize: 12,
-    color: '#8E8E93',
-  },
-  noSchedule: {
-    alignItems: 'center',
-    paddingVertical: 24,
-  },
-  noScheduleText: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  addFirstSchedule: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#F0F8FF',
-    borderRadius: 16,
-  },
-  addFirstScheduleText: {
-    fontSize: 12,
-    color: '#007AFF',
-    fontWeight: '500',
-  },
-  dockContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: 'white',
-    paddingVertical: 16,
-    paddingBottom: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  dockItem: {
-    alignItems: 'center',
-    flex: 1,
-    paddingVertical: 10,
-  },
-  dockLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    textAlign: 'center',
-    marginTop: 6,
-  },
-  recentActivityCard: {
-    margin: 20,
-    marginTop: 8,
-    marginBottom: 30,
-    backgroundColor: 'white',
-  },
-  recentActivity: {
-    paddingVertical: 24,
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-  },
-  noActivityText: {
-    fontSize: 15,
-    color: '#9CA3AF',
-    fontStyle: 'italic',
-    fontWeight: '500',
-  },
-});
