@@ -271,16 +271,18 @@ export default function HomeScreen() {
                 <Ionicons name="chevron-back" size={20} color="#007AFF" />
               </TouchableOpacity>
               
-              <TouchableOpacity style={homeScreenStyles.dateDisplay} onPress={openCalendar}>
+              <View style={homeScreenStyles.dateDisplay}>
                 <View style={homeScreenStyles.dateContainer}>
-                  <ThemedText style={homeScreenStyles.dateText}>{formatDate(selectedDate)}</ThemedText>
+                  <TouchableOpacity onPress={openCalendar}>
+                    <ThemedText style={homeScreenStyles.dateText}>{formatDate(selectedDate)}</ThemedText>
+                  </TouchableOpacity>
                   {selectedDate.toDateString() === new Date().toDateString() && (
                     <View style={homeScreenStyles.todayBadge}>
                       <ThemedText style={homeScreenStyles.todayBadgeText}>오늘</ThemedText>
                     </View>
                   )}
                 </View>
-              </TouchableOpacity>
+              </View>
               
               <TouchableOpacity 
                 style={homeScreenStyles.dateNavButton}
