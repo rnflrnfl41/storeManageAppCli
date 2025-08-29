@@ -40,6 +40,8 @@ export default function Login() {
   useEffect(() => {
     // 저장된 로그인 ID 불러오기
     loadRememberedLoginId();
+    // 자동 로그인 시도
+    tokenCheckLogin();
   }, []);
 
   const [formState, setFormState] = useState<FormState>({
@@ -60,6 +62,41 @@ export default function Login() {
       }
     } catch (error) {
       console.log('저장된 로그인 ID 불러오기 실패:', error);
+    }
+  };
+
+  //만약 저장된 refresh token 이 존재 하고 유효 하다면 메인 페이지로 이동
+  const tokenCheckLogin = async () => {
+    try {
+      const refreshToken = await tokenManager.getRefreshToken();
+      
+      if (!refreshToken) {
+        console.log('저장된 refresh token이 없습니다.');
+        return;
+      }
+
+      const response = await publicAxiosInstance.post(
+        "/auth/user/refresh-token",
+        { refreshToken }
+      );
+
+      const responseData = response.data;
+
+      // 새로운 토큰들을 저장
+      await tokenManager.saveAccessToken(responseData.accessToken);
+      await tokenManager.saveRefreshToken(responseData.refreshToken);
+
+      // 사용자 정보 저장 (토큰 제외)
+      const { accessToken, refreshToken: newRefreshToken, ...userInfo } = responseData;
+      await setUserInfo(userInfo);
+
+      // 메인 페이지로 이동
+      router.replace('Home');
+      
+    } catch (error: any) {
+      console.log('자동 로그인 실패:', error.message || error);
+      // 토큰이 만료되었거나 유효하지 않은 경우 토큰 삭제
+      await tokenManager.clearTokens();
     }
   };
 
@@ -105,12 +142,12 @@ export default function Login() {
     try {
       const response = await publicAxiosInstance.post('/auth/user/login', requestData);
       const responseData = response.data;
-      
+
       // 토큰을 Keychain에 암호화해서 저장
       await tokenManager.saveAccessToken(responseData.accessToken);
       await tokenManager.saveRefreshToken(responseData.refreshToken);
-      
-      // userInfo에서 토큰을 제외한 정보만 Redux에 저장
+
+      // userInfo에서 토큰을 제외한 정보만 저장
       const { accessToken, refreshToken, ...userInfo } = responseData;
       setUserInfo(userInfo);
 
