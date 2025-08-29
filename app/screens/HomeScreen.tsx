@@ -28,7 +28,6 @@ export default function HomeScreen() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
 
   useEffect(() => {
-    debugAsyncStorage();
     loadUserData();
   }, []);
 
@@ -56,8 +55,8 @@ export default function HomeScreen() {
         {
           text: '로그아웃',
           style: 'destructive',
-          onPress: () => {
-            logout();
+          onPress: async () => {
+            await logout();
             router.replace("Login");
           }
         }
