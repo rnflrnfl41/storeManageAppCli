@@ -14,3 +14,7 @@ export const debugAsyncStorage = async () => {
 export const clearAsyncStorage = async (key:string) => {
   await AsyncStorage.removeItem(key);
 };
+
+export const clearAllAsyncStorage = async () => {
+  await AsyncStorage.clear();
+};
