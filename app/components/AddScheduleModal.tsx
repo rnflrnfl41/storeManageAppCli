@@ -37,13 +37,13 @@ export default function AddScheduleModal({ visible, onClose, onSave }: AddSchedu
   const [showTimePicker, setShowTimePicker] = useState(false);
   const titleInputRef = useRef<TextInput>(null);
 
-  useEffect(() => {
-    if (visible) {
-      setTimeout(() => {
-        titleInputRef.current?.focus();
-      }, 100);
-    }
-  }, [visible]);
+  // useEffect(() => {
+  //   if (visible) {
+  //     setTimeout(() => {
+  //       titleInputRef.current?.focus();
+  //     }, 100);
+  //   }
+  // }, [visible]);
 
   const handleSave = () => {
     if (!title.trim()) {
