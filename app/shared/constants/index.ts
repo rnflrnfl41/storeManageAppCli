@@ -39,4 +39,4 @@ export const APP_STATES = {
   ERROR: 'error',
 } as const;
 
-export const DEFAULT_TIMEOUT = 20000;
+export const DEFAULT_TIMEOUT = 10000;
