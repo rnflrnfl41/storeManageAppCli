@@ -17,7 +17,7 @@ export const calendarTheme = {
   textDayFontWeight: '500',
   textMonthFontWeight: '600',
   textDayHeaderFontWeight: '500',
-  textDayFontSize: 16,
-  textMonthFontSize: 18,
-  textDayHeaderFontSize: 14
+  textDayFontSize: 20,
+  textMonthFontSize: 24,
+  textDayHeaderFontSize: 18
 } as any;

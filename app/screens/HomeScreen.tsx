@@ -1,6 +1,6 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, TouchableOpacity, View, Image, Modal } from 'react-native';
+import { Alert, ScrollView, StyleSheet, TouchableOpacity, View, Image, Modal, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Calendar } from 'react-native-calendars';
@@ -23,6 +23,9 @@ interface Schedule {
 }
 
 export default function HomeScreen() {
+  const { width } = Dimensions.get('window');
+  const isTablet = width >= 768;
+  
   const [activeTab, setActiveTab] = useState('홈');
   const [userName, setUserName] = useState('사용자');
   const [storeName, setStoreName] = useState('Hair City');
@@ -205,7 +208,7 @@ export default function HomeScreen() {
               style={homeScreenStyles.logoutButton}
               onPress={handleLogout}
             >
-              <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
+              <Ionicons name="log-out-outline" size={isTablet ? 24 : 20} color="#FF3B30" />
             </TouchableOpacity>
           </View>
 
@@ -224,7 +227,7 @@ export default function HomeScreen() {
                 onPress={() => handleFeaturePress('매출 등록')}
               >
                 <View style={[homeScreenStyles.quickMenuIcon, { backgroundColor: '#4CAF50' }]}>
-                  <Ionicons name="cash" size={24} color="white" />
+                  <Ionicons name="cash" size={isTablet ? 32 : 24} color="white" />
                 </View>
                 <ThemedText style={homeScreenStyles.quickMenuLabel}>매출 등록</ThemedText>
               </TouchableOpacity>
@@ -234,7 +237,7 @@ export default function HomeScreen() {
                 onPress={() => handleFeaturePress('고객 등록')}
               >
                 <View style={[homeScreenStyles.quickMenuIcon, { backgroundColor: '#2196F3' }]}>
-                  <Ionicons name="person-add" size={24} color="white" />
+                  <Ionicons name="person-add" size={isTablet ? 32 : 24} color="white" />
                 </View>
                 <ThemedText style={homeScreenStyles.quickMenuLabel}>고객 등록</ThemedText>
               </TouchableOpacity>
@@ -244,7 +247,7 @@ export default function HomeScreen() {
                 onPress={() => handleFeaturePress('지출 등록')}
               >
                 <View style={[homeScreenStyles.quickMenuIcon, { backgroundColor: '#FF5722' }]}>
-                  <Ionicons name="card" size={24} color="white" />
+                  <Ionicons name="card" size={isTablet ? 32 : 24} color="white" />
                 </View>
                 <ThemedText style={homeScreenStyles.quickMenuLabel}>지출 등록</ThemedText>
               </TouchableOpacity>
@@ -259,7 +262,7 @@ export default function HomeScreen() {
                 style={homeScreenStyles.addScheduleButton}
                 onPress={handleAddSchedule}
               >
-                <Ionicons name="add" size={20} color="#007AFF" />
+                <Ionicons name="add" size={isTablet ? 24 : 20} color="#007AFF" />
               </TouchableOpacity>
             </View>
             
@@ -268,7 +271,7 @@ export default function HomeScreen() {
                 style={homeScreenStyles.dateNavButton}
                 onPress={() => handleDateChange('prev')}
               >
-                <Ionicons name="chevron-back" size={20} color="#007AFF" />
+                <Ionicons name="chevron-back" size={isTablet ? 24 : 20} color="#007AFF" />
               </TouchableOpacity>
               
               <View style={homeScreenStyles.dateDisplay}>
@@ -288,7 +291,7 @@ export default function HomeScreen() {
                 style={homeScreenStyles.dateNavButton}
                 onPress={() => handleDateChange('next')}
               >
-                <Ionicons name="chevron-forward" size={20} color="#007AFF" />
+                <Ionicons name="chevron-forward" size={isTablet ? 24 : 20} color="#007AFF" />
               </TouchableOpacity>
             </View>
 
@@ -323,7 +326,7 @@ export default function HomeScreen() {
                           >
                             <Ionicons 
                               name="checkmark" 
-                              size={14} 
+                              size={18} 
                               color={schedule.completed ? "white" : "#4CAF50"} 
                             />
                           </TouchableOpacity>
@@ -331,7 +334,7 @@ export default function HomeScreen() {
                             style={homeScreenStyles.deleteButton}
                             onPress={() => handleDeleteSchedule(schedule.id)}
                           >
-                            <Ionicons name="close" size={14} color="#FF3B30" />
+                            <Ionicons name="close" size={18} color="#FF3B30" />
                           </TouchableOpacity>
                         </View>
                       </View>
@@ -347,7 +350,7 @@ export default function HomeScreen() {
                       </ThemedText>
                       <Ionicons 
                         name={showAllSchedules ? "chevron-up" : "chevron-down"} 
-                        size={16} 
+                        size={20} 
                         color="#007AFF" 
                       />
                     </TouchableOpacity>
@@ -355,7 +358,7 @@ export default function HomeScreen() {
                 </>
               ) : (
                 <View style={homeScreenStyles.noSchedule}>
-                  <Ionicons name="calendar-outline" size={32} color="#8E8E93" />
+                  <Ionicons name="calendar-outline" size={40} color="#8E8E93" />
                   <ThemedText style={homeScreenStyles.noScheduleText}>이 날짜에 예정된 일정이 없습니다</ThemedText>
                   <TouchableOpacity 
                     style={homeScreenStyles.addFirstSchedule}
@@ -401,7 +404,7 @@ export default function HomeScreen() {
                   style={homeScreenStyles.calendarCloseButton}
                   onPress={() => setCalendarVisible(false)}
                 >
-                  <Ionicons name="close" size={24} color="#8E8E93" />
+                  <Ionicons name="close" size={28} color="#8E8E93" />
                 </TouchableOpacity>
               </View>
               <Calendar
@@ -427,7 +430,7 @@ export default function HomeScreen() {
           >
             <Ionicons 
               name="trending-up" 
-              size={28} 
+              size={32} 
               color={activeTab === '매출 관리' ? '#007AFF' : '#8E8E93'} 
             />
             <ThemedText style={[
@@ -442,7 +445,7 @@ export default function HomeScreen() {
           >
             <Ionicons 
               name="trending-down" 
-              size={28} 
+              size={32} 
               color={activeTab === '지출 관리' ? '#007AFF' : '#8E8E93'} 
             />
             <ThemedText style={[
@@ -457,7 +460,7 @@ export default function HomeScreen() {
           >
             <Ionicons 
               name="home" 
-              size={28} 
+              size={32} 
               color={activeTab === '홈' ? '#007AFF' : '#8E8E93'} 
             />
             <ThemedText style={[
@@ -472,7 +475,7 @@ export default function HomeScreen() {
           >
             <Ionicons 
               name="people" 
-              size={28} 
+              size={32} 
               color={activeTab === '고객 관리' ? '#007AFF' : '#8E8E93'} 
             />
             <ThemedText style={[
@@ -487,7 +490,7 @@ export default function HomeScreen() {
           >
             <Ionicons 
               name="pricetag" 
-              size={28} 
+              size={32} 
               color={activeTab === '쿠폰 관리' ? '#007AFF' : '#8E8E93'} 
             />
             <ThemedText style={[
