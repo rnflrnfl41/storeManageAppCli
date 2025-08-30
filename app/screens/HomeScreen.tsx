@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Calendar } from 'react-native-calendars';
 import AddScheduleModal from '@components/AddScheduleModal';
-import '../config/calendarConfig';
+import '@config/calendarConfig';
 import { calendarTheme } from '@shared/styles/CalendarStyles';
 import { homeScreenStyles } from '@shared/styles/HomeScreenStyles';
 
