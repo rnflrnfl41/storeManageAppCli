@@ -21,8 +21,24 @@ let failedQueue: Array<{
 }> = [];
 
 import Config from 'react-native-config';
+import DeviceInfo from 'react-native-device-info';
 
-const baseUrl = Config.PUBLIC_API_URL || "http://10.0.2.2:8080/api";
+// 기기 타입에 따른 API URL 반환
+let cachedUrl: string | null = null;
+let isInitialized = false;
+
+const getApiUrl = async (): Promise<string> => {
+  if (!isInitialized) {
+    try {
+      const isEmulator = await DeviceInfo.isEmulator();
+      cachedUrl = isEmulator ? Config.EMULATOR_API_URL! : Config.PUBLIC_API_URL!;
+    } catch {
+      cachedUrl = 'http://10.0.2.2:8080/api';
+    }
+    isInitialized = true;
+  }
+  return cachedUrl!;
+};
 
 // 큐에 쌓인 요청들을 처리하는 함수
 const processQueue = (error: any, token: string | null = null) => {
@@ -148,21 +164,26 @@ const handleServerError = async (error: AxiosError<ApiErrorResponse>) => {
   }
 };
 
+const getBaseURL = async (): Promise<string> => {
+  return await getApiUrl();
+};
+
 // 인증이 필요 없는 API용 인스턴스 (로그인, 회원가입 등)
 export const publicAxiosInstance = axios.create({
-  baseURL: baseUrl,
   timeout: DEFAULT_TIMEOUT,
 });
 
 // 인증이 필요한 API용 인스턴스 (토큰 자동 추가)
 export const axiosInstance = axios.create({
-  baseURL: baseUrl,
   timeout: DEFAULT_TIMEOUT,
 });
 
+
+
 // public 인스턴스용 요청 인터셉터 (로딩 시작)
 publicAxiosInstance.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+  async (config: InternalAxiosRequestConfig) => {
+    config.baseURL = await getBaseURL();
     store.dispatch(startLoading());
     return config;
   },
@@ -201,6 +222,7 @@ publicAxiosInstance.interceptors.response.use(
 // 요청 인터셉터 설정 (refreshToken 정기 갱신 + 로딩 시작)
 axiosInstance.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
+    config.baseURL = await getBaseURL();
     store.dispatch(startLoading());
 
     // 🔄 refreshToken 정기 갱신 체크 (3일 전에 갱신)
