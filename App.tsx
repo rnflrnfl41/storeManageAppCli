@@ -9,7 +9,6 @@ import HomeScreen from '@screens/HomeScreen';
 import LoginScreen from '@screens/LoginScreen';
 import { RootStackParamList } from '@types';
 import { navigationRef } from '@/app/shared/utils/navigateUtils';
-import '@styles/globalStyles';
 
 
 function App() {
