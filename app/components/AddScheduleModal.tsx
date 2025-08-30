@@ -83,7 +83,7 @@ export default function AddScheduleModal({ visible, onClose, onSave }: AddSchedu
   const [selectedMinute, setSelectedMinute] = useState(0);
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
-  const minutes = [0, 15, 30, 45];
+  const minutes = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 
   const confirmTime = () => {
     const newTime = new Date();
@@ -216,12 +216,12 @@ export default function AddScheduleModal({ visible, onClose, onSave }: AddSchedu
           {showTimePicker && (
             <Modal
               transparent={true}
-              animationType="slide"
+              animationType="fade"
               visible={showTimePicker}
               onRequestClose={() => setShowTimePicker(false)}
             >
               <TouchableOpacity 
-                style={addScheduleModalStyles.timeModalOverlay}
+                style={addScheduleModalStyles.calendarModalOverlay}
                 activeOpacity={1}
                 onPress={() => setShowTimePicker(false)}
               >
