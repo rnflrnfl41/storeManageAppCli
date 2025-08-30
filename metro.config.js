@@ -9,8 +9,11 @@ const path = require('path');
  */
 const config = {
     resolver: {
+    platforms: ['ios', 'android', 'native', 'web'],
+    sourceExts: ['js', 'json', 'ts', 'tsx', 'jsx'],
     alias: {
       '@': path.resolve(__dirname),
+      '@config': path.resolve(__dirname, 'app/config'),
       '@screens': path.resolve(__dirname, 'app/screens'),
       '@components': path.resolve(__dirname, 'app/components'),
       '@features': path.resolve(__dirname, 'app/features'),

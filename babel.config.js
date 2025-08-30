@@ -6,6 +6,7 @@ module.exports = {
       alias: {
         '@': './',
         '@screens': './app/screens',
+        '@config': './app/config',
         '@components': './app/components',
         '@features': './app/features',
         '@shared': './app/shared',

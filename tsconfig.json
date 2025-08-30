@@ -15,6 +15,7 @@
     "paths": {
       "@/*": ["*"],
       "@screens/*": ["app/screens/*"],
+      "@config/*": ["app/config/*"],
       "@components/*": ["app/components/*"],
       "@components": ["app/components"],
       "@features/*": ["app/features/*"],
