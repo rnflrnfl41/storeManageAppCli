@@ -9,7 +9,7 @@ import {
   Pressable,
   ScrollView,
   Text,
-  TextInput,
+  // TextInput,
   View
 } from 'react-native';
 import { useDispatch } from 'react-redux';
@@ -21,6 +21,7 @@ import { tokenManager } from '@services/tokenManager';
 import type { LoginRequest } from '@shared/types';
 import { createResponsiveLoginStyles, loginStyles } from '@styles';
 import { setUserInfo } from '@services/authService';
+import { TextInput } from '@components/CustomTextInput';
 
 const { width } = Dimensions.get('window');
 
