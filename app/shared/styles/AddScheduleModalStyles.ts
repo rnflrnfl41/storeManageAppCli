@@ -133,17 +133,22 @@ export const addScheduleModalStyles = StyleSheet.create({
   },
   timeModalContent: {
     backgroundColor: 'white',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    maxHeight: '60%',
+    borderRadius: 16,
+    margin: 20,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
   },
   timeModalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    marginBottom: 16,
   },
   timeModalTitle: {
     fontSize: 18,
@@ -172,8 +177,8 @@ export const addScheduleModalStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 20,
-    height: 250,
+    paddingVertical: 30,
+    height: 320,
   },
   timePickerColumn: {
     alignItems: 'center',
@@ -186,7 +191,7 @@ export const addScheduleModalStyles = StyleSheet.create({
     marginBottom: 10,
   },
   timePickerScroll: {
-    height: 150,
+    height: 200,
   },
   timePickerOption: {
     height: 50,
