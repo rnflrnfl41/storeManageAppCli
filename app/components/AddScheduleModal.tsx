@@ -3,7 +3,6 @@ import {
   Modal,
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   Alert,
   ScrollView,
@@ -11,9 +10,11 @@ import {
 import { Calendar } from 'react-native-calendars';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
-import '../config/calendarConfig';
+import '@config/calendarConfig.ts';
+import { TextInput } from '@components/CustomTextInput';
 import { calendarTheme } from '@shared/styles/CalendarStyles';
 import { addScheduleModalStyles } from '@shared/styles/AddScheduleModalStyles';
+import type { TextInput as TextInputType } from 'react-native';
 
 interface Schedule {
   id: string;
@@ -35,7 +36,7 @@ export default function AddScheduleModal({ visible, onClose, onSave }: AddSchedu
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const titleInputRef = useRef<TextInput>(null);
+  const titleInputRef = useRef<TextInputType>(null);
 
   // useEffect(() => {
   //   if (visible) {

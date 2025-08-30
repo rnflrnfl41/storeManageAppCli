@@ -9,10 +9,8 @@ import {
   Pressable,
   ScrollView,
   Text,
-  // TextInput,
   View
 } from 'react-native';
-import { useDispatch } from 'react-redux';
 
 import { LoadingDots } from '@components';
 import { useOrientation } from '@hooks/useOrientation';

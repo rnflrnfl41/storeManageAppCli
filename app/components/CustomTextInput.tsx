@@ -6,6 +6,7 @@ export const CustomTextInput = React.forwardRef<TextInput, TextInputProps>((prop
     <TextInput
       {...props}
       placeholderTextColor={props.placeholderTextColor || '#8E8E93'}
+      autoCapitalize="none"
       ref={ref}
     />
   );
