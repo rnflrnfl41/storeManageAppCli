@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { View, TouchableOpacity, Dimensions } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { TabParamList } from '@types';
@@ -14,7 +14,7 @@ import CouponScreen from '@screens/CouponScreen';
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
-const Tab = createBottomTabNavigator<TabParamList>();
+const Tab = createMaterialTopTabNavigator<TabParamList>();
 
 function CustomTabBar({ state, descriptors, navigation }: any) {
   return (
@@ -112,9 +112,12 @@ export default function TabNavigator() {
   return (
     <Tab.Navigator
       tabBar={props => <CustomTabBar {...props} />}
+      tabBarPosition="bottom"
       screenOptions={{
-        headerShown: false,
+        swipeEnabled: true,
+        animationEnabled: true,
       }}
+      initialLayout={{ width: Dimensions.get('window').width }}
     >
       <Tab.Screen name="Sales" component={SalesScreen} />
       <Tab.Screen name="Expense" component={ExpenseScreen} />
