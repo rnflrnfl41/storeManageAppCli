@@ -26,7 +26,7 @@ export default function HomeScreen() {
   const { width } = Dimensions.get('window');
   const isTablet = width >= 768;
   
-  const [activeTab, setActiveTab] = useState('홈');
+
   const [userName, setUserName] = useState('사용자');
   const [storeName, setStoreName] = useState('Hair City');
 
@@ -79,14 +79,7 @@ export default function HomeScreen() {
     );
   };
 
-  /**
-   * 하단 독바나 퀴 메뉴의 기능 버튼 클릭 시 호출되는 함수
-   * 현재는 로그만 출력하지만 추후 각 기능별 화면 이동 기능 추가 예정
-   */
-  const handleFeaturePress = (feature: string) => {
-    setActiveTab(feature);
-    console.log(`${feature} 기능 선택됨`);
-  };
+
 
   /**
    * 일정 추가 모달을 열기
@@ -224,7 +217,7 @@ export default function HomeScreen() {
             <View style={homeScreenStyles.quickMenuGrid}>
               <TouchableOpacity 
                 style={homeScreenStyles.quickMenuItem}
-                onPress={() => handleFeaturePress('매출 등록')}
+                onPress={() => console.log('매출 등록')}
               >
                 <View style={[homeScreenStyles.quickMenuIcon, { backgroundColor: '#4CAF50' }]}>
                   <Ionicons name="cash" size={isTablet ? 32 : 24} color="white" />
@@ -234,7 +227,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity 
                 style={homeScreenStyles.quickMenuItem}
-                onPress={() => handleFeaturePress('고객 등록')}
+                onPress={() => console.log('고객 등록')}
               >
                 <View style={[homeScreenStyles.quickMenuIcon, { backgroundColor: '#2196F3' }]}>
                   <Ionicons name="person-add" size={isTablet ? 32 : 24} color="white" />
@@ -244,7 +237,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity 
                 style={homeScreenStyles.quickMenuItem}
-                onPress={() => handleFeaturePress('지출 등록')}
+                onPress={() => console.log('지출 등록')}
               >
                 <View style={[homeScreenStyles.quickMenuIcon, { backgroundColor: '#FF5722' }]}>
                   <Ionicons name="card" size={isTablet ? 32 : 24} color="white" />
@@ -371,8 +364,7 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          {/* 하단 여백 (독바 공간 확보) */}
-          <View style={{ height: 100 }} />
+
         </ScrollView>
 
         <AddScheduleModal
@@ -422,83 +414,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </Modal>
 
-        {/* 관리 메뉴 독바 - 하단 고정 */}
-        <View style={homeScreenStyles.dockContainer}>
-          <TouchableOpacity
-            style={homeScreenStyles.dockItem}
-            onPress={() => handleFeaturePress('매출 관리')}
-          >
-            <Ionicons 
-              name="trending-up" 
-              size={32} 
-              color={activeTab === '매출 관리' ? '#007AFF' : '#8E8E93'} 
-            />
-            <ThemedText style={[
-              homeScreenStyles.dockLabel, 
-              { color: activeTab === '매출 관리' ? '#007AFF' : '#8E8E93' }
-            ]}>매출</ThemedText>
-          </TouchableOpacity>
 
-          <TouchableOpacity
-            style={homeScreenStyles.dockItem}
-            onPress={() => handleFeaturePress('지출 관리')}
-          >
-            <Ionicons 
-              name="trending-down" 
-              size={32} 
-              color={activeTab === '지출 관리' ? '#007AFF' : '#8E8E93'} 
-            />
-            <ThemedText style={[
-              homeScreenStyles.dockLabel, 
-              { color: activeTab === '지출 관리' ? '#007AFF' : '#8E8E93' }
-            ]}>지출</ThemedText>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={homeScreenStyles.dockItem}
-            onPress={() => handleFeaturePress('홈')}
-          >
-            <Ionicons 
-              name="home" 
-              size={32} 
-              color={activeTab === '홈' ? '#007AFF' : '#8E8E93'} 
-            />
-            <ThemedText style={[
-              homeScreenStyles.dockLabel, 
-              { color: activeTab === '홈' ? '#007AFF' : '#8E8E93' }
-            ]}>홈</ThemedText>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={homeScreenStyles.dockItem}
-            onPress={() => handleFeaturePress('고객 관리')}
-          >
-            <Ionicons 
-              name="people" 
-              size={32} 
-              color={activeTab === '고객 관리' ? '#007AFF' : '#8E8E93'} 
-            />
-            <ThemedText style={[
-              homeScreenStyles.dockLabel, 
-              { color: activeTab === '고객 관리' ? '#007AFF' : '#8E8E93' }
-            ]}>고객</ThemedText>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={homeScreenStyles.dockItem}
-            onPress={() => handleFeaturePress('쿠폰 관리')}
-          >
-            <Ionicons 
-              name="pricetag" 
-              size={32} 
-              color={activeTab === '쿠폰 관리' ? '#007AFF' : '#8E8E93'} 
-            />
-            <ThemedText style={[
-              homeScreenStyles.dockLabel, 
-              { color: activeTab === '쿠폰 관리' ? '#007AFF' : '#8E8E93' }
-            ]}>쿠폰</ThemedText>
-          </TouchableOpacity>
-        </View>
       </View>
     </SafeAreaView>
   );

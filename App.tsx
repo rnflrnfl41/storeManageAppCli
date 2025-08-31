@@ -5,21 +5,20 @@ import { GlobalSpinner } from '@components';
 import Toast from 'react-native-toast-message';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from '@screens/HomeScreen';
 import LoginScreen from '@screens/LoginScreen';
-import { RootStackParamList } from '@types';
+import TabNavigator from '@components/TabNavigator';
 import { navigationRef } from '@/app/shared/utils/navigateUtils';
-
+import { AppStackParamList } from '@types';
 
 function App() {
-  const Stack = createNativeStackNavigator<RootStackParamList>();
+  const Stack = createNativeStackNavigator<AppStackParamList>();
 
   return (
     <Provider store={store}>
       <NavigationContainer ref={navigationRef}>
         <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Main" component={TabNavigator} />
         </Stack.Navigator>
       </NavigationContainer>
 

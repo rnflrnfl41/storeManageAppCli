@@ -39,8 +39,23 @@ export interface PaginatedResponse<T> {
 }
 
 export type RootStackParamList = {
-  Home: undefined;
   Login: undefined;
+  Main: undefined;
   Details: { id: string };
   // 필요시 다른 스크린 추가
+};
+
+export type AppStackParamList = {
+  Login: undefined;
+  Main: undefined;
+  Details: { id: string };
+  // 필요시 다른 스크린 추가
+};
+
+export type TabParamList = {
+  Home: undefined;
+  Sales: undefined;
+  Expense: undefined;
+  Customer: undefined;
+  Coupon: undefined;
 };

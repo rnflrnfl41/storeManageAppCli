@@ -90,7 +90,7 @@ export default function Login() {
       await setUserInfo(userInfo);
 
       // 메인 페이지로 이동
-      router.replace('Home');
+      router.replace('Main');
       
     } catch (error: any) {
       console.log('자동 로그인 실패:', error.message || error);
@@ -158,7 +158,7 @@ export default function Login() {
       }
 
       // 메인 페이지로 이동
-      router.replace('Home');
+      router.replace('Main');
     } catch (error: any) {
       console.log('로그인 실패:', error);
       // 에러 메시지는 axiosInstance에서 자동으로 처리됨
