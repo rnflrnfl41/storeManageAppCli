@@ -119,9 +119,9 @@ export default function TabNavigator() {
       }}
       initialLayout={{ width: Dimensions.get('window').width }}
     >
+      <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Sales" component={SalesScreen} />
       <Tab.Screen name="Expense" component={ExpenseScreen} />
-      <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Customer" component={CustomerScreen} />
       <Tab.Screen name="Coupon" component={CouponScreen} />
     </Tab.Navigator>
