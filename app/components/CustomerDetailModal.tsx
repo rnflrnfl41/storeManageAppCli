@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet, Modal, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
 
@@ -21,11 +21,14 @@ interface Coupon {
   usedDate?: string;
 }
 
-interface Customer {
+interface CustomerBasic {
   id: string;
   name: string;
   phone: string;
   lastVisit: string;
+}
+
+interface Customer extends CustomerBasic {
   totalSpent: number;
   visitCount: number;
   points: number;
@@ -35,15 +38,70 @@ interface Customer {
 
 interface CustomerDetailModalProps {
   visible: boolean;
-  customer?: Customer;
+  customer?: CustomerBasic;
   onClose: () => void;
 }
 
 export default function CustomerDetailModal({ visible, customer, onClose }: CustomerDetailModalProps) {
-  const [showAllHistory, setShowAllHistory] = React.useState(false);
-  const [showUsedCoupons, setShowUsedCoupons] = React.useState(false);
+  const [showAllHistory, setShowAllHistory] = useState(false);
+  const [showUsedCoupons, setShowUsedCoupons] = useState(false);
+  const [customerDetail, setCustomerDetail] = useState<Customer | null>(null);
+  const [loading, setLoading] = useState(false);
+  
+  useEffect(() => {
+    if (visible && customer) {
+      fetchCustomerDetail();
+    }
+  }, [visible, customer]);
+  
+  const fetchCustomerDetail = async () => {
+    if (!customer) return;
+    
+    setLoading(true);
+    try {
+      // API 호출로 상세 정보 조회
+      // const detail = await fetchCustomerDetailAPI(customer.id);
+      
+      // 임시 더미 데이터
+      const detail: Customer = {
+        ...customer,
+        totalSpent: Math.floor(Math.random() * 500000),
+        visitCount: Math.floor(Math.random() * 20) + 1,
+        points: Math.floor(Math.random() * 5000),
+        coupons: [
+          { id: 'c1', name: '신규고객 할인', amount: 10000, type: 'fixed', createdDate: '2024-01-01', expiryDate: '2024-03-01', isUsed: false },
+          { id: 'c2', name: '생일 축하 쿠폰', amount: 20, type: 'percent', createdDate: '2023-12-15', expiryDate: '2024-02-15', isUsed: true, usedDate: '2024-01-12' },
+        ],
+        serviceHistory: [
+          { id: '1', date: customer.lastVisit, service: '커트', amount: 25000 },
+          { id: '2', date: '2024-01-10', service: '파마', amount: 80000 },
+        ]
+      };
+      
+      setCustomerDetail(detail);
+    } catch (error) {
+      console.error('고객 상세 정보 조회 실패:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   if (!customer) return null;
+  
+  if (loading) {
+    return (
+      <Modal visible={visible} transparent={true} animationType="fade">
+        <View style={styles.overlay}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#007AFF" />
+            <ThemedText style={styles.loadingText}>고객 정보를 불러오는 중...</ThemedText>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
+  
+  if (!customerDetail) return null;
 
   const getServiceIcon = (service: string) => {
     switch (service) {
@@ -78,8 +136,8 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
                   <Ionicons name="person" size={32} color="#007AFF" />
                 </View>
                 <View style={styles.customerBasicInfo}>
-                  <ThemedText style={styles.customerName}>{customer.name}</ThemedText>
-                  <ThemedText style={styles.customerPhone}>{customer.phone}</ThemedText>
+                  <ThemedText style={styles.customerName}>{customerDetail.name}</ThemedText>
+                  <ThemedText style={styles.customerPhone}>{customerDetail.phone}</ThemedText>
                 </View>
               </View>
             </View>
@@ -94,7 +152,7 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
                   </View>
                   <View style={styles.statTextContainer}>
                     <ThemedText style={styles.statLabel}>총 방문</ThemedText>
-                    <ThemedText style={styles.statValue}>{customer.visitCount}회</ThemedText>
+                    <ThemedText style={styles.statValue}>{customerDetail.visitCount}회</ThemedText>
                   </View>
                 </View>
                 
@@ -104,7 +162,7 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
                   </View>
                   <View style={styles.statTextContainer}>
                     <ThemedText style={styles.statLabel}>총 결제</ThemedText>
-                    <ThemedText style={styles.statValue}>₩{customer.totalSpent.toLocaleString()}</ThemedText>
+                    <ThemedText style={styles.statValue}>₩{customerDetail.totalSpent.toLocaleString()}</ThemedText>
                   </View>
                 </View>
               </View>
@@ -115,7 +173,7 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
                 </View>
                 <View style={styles.statTextContainer}>
                   <ThemedText style={styles.statLabel}>최근 방문일</ThemedText>
-                  <ThemedText style={styles.statValue}>{customer.lastVisit}</ThemedText>
+                  <ThemedText style={styles.statValue}>{customerDetail.lastVisit}</ThemedText>
                 </View>
               </View>
             </View>
@@ -128,7 +186,7 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
                   <Ionicons name="star" size={28} color="#FFD700" />
                 </View>
                 <View>
-                  <ThemedText style={styles.pointValue}>{customer.points}P</ThemedText>
+                  <ThemedText style={styles.pointValue}>{customerDetail.points}P</ThemedText>
                   <ThemedText style={styles.pointLabel}>사용 가능한 포인트</ThemedText>
                 </View>
               </View>
@@ -137,17 +195,17 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
             {/* 쿠폰 */}
             <View style={styles.section}>
               {(() => {
-                const activeCoupons = customer.coupons.filter(c => !c.isUsed);
-                const usedCoupons = customer.coupons.filter(c => c.isUsed);
+                const activeCoupons = customerDetail.coupons.filter(c => !c.isUsed);
+                const usedCoupons = customerDetail.coupons.filter(c => c.isUsed);
                 const displayCoupons = showUsedCoupons 
-                  ? customer.coupons.sort((a, b) => a.isUsed ? 1 : -1)
+                  ? customerDetail.coupons.sort((a, b) => a.isUsed ? 1 : -1)
                   : activeCoupons;
                 
                 return (
                   <>
                     <View style={styles.couponHeader}>
                       <ThemedText style={styles.sectionTitle}>
-                        보유 쿠폰 ({showUsedCoupons ? customer.coupons.length : activeCoupons.length}장)
+                        보유 쿠폰 ({showUsedCoupons ? customerDetail.coupons.length : activeCoupons.length}장)
                       </ThemedText>
                       {usedCoupons.length > 0 && (
                         <TouchableOpacity 
@@ -187,7 +245,7 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
                       </View>
                     ))}
                     
-                    {customer.coupons.length === 0 && (
+                    {customerDetail.coupons.length === 0 && (
                       <View style={styles.emptyCoupons}>
                         <Ionicons name="ticket-outline" size={32} color="#8E8E93" />
                         <ThemedText style={styles.emptyText}>보유한 쿠폰이 없습니다</ThemedText>
@@ -202,7 +260,7 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
             <View style={styles.section}>
               <ThemedText style={styles.sectionTitle}>서비스 이력</ThemedText>
               {(() => {
-                const sortedHistory = customer.serviceHistory
+                const sortedHistory = customerDetail.serviceHistory
                   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
                 const displayHistory = showAllHistory ? sortedHistory : sortedHistory.slice(0, 5);
                 
@@ -240,7 +298,7 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
                 );
               })()}
               
-              {customer.serviceHistory.length === 0 && (
+              {customerDetail.serviceHistory.length === 0 && (
                 <View style={styles.emptyHistory}>
                   <Ionicons name="time-outline" size={32} color="#8E8E93" />
                   <ThemedText style={styles.emptyText}>서비스 이력이 없습니다</ThemedText>
@@ -540,6 +598,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#8E8E93',
     marginTop: 12,
+  },
+  loadingContainer: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
   },
   showMoreButton: {
     flexDirection: 'row',
