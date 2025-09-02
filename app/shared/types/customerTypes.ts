@@ -5,11 +5,36 @@ export interface CustomerBasic {
   lastVisit: string | null;
 }
 
+export interface Service {
+  id: string;
+  name: string;
+  amount: number;
+}
+
 export interface ServiceHistory {
   id: string;
   date: string;
-  service: string;
-  amount: number;
+  services: Service[];
+  subtotalAmount: number;
+  discountAmount: number;
+  finalAmount: number;
+  memo?: string;
+}
+
+export interface ServiceHistoryDto {
+  historyId: number;
+  date: string;
+  services: ServiceItemDto[];
+  subtotalAmount: number;
+  discountAmount: number;
+  finalAmount: number;
+  memo?: string;
+}
+
+export interface ServiceItemDto {
+  serviceId: number;
+  name: string;
+  price: number;
 }
 
 export interface Coupon {

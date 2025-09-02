@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
-import { CustomerDetail, CustomerDetailModalProps } from '@shared/types/customerTypes';
+import { CustomerDetail, CustomerDetailModalProps, ServiceHistory, ServiceHistoryDto } from '@shared/types/customerTypes';
+import { axiosInstance } from '@services/apiClient';
 
 export default function CustomerDetailModal({ visible, customer, onClose }: CustomerDetailModalProps) {
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [showUsedCoupons, setShowUsedCoupons] = useState(false);
   const [customerDetail, setCustomerDetail] = useState<CustomerDetail | null>(null);
-  const [loading, setLoading] = useState(false);
   
   useEffect(() => {
     if (visible && customer) {
@@ -19,51 +19,46 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
   const fetchCustomerDetail = async () => {
     if (!customer) return;
     
-    setLoading(true);
     try {
-      // API 호출로 상세 정보 조회
-      // const detail = await fetchCustomerDetailAPI(customer.id);
+      const response = await axiosInstance.get<ServiceHistoryDto[]>(`/sales/${customer.id}`);
+      const salesHistory = response.data;
       
-      // 임시 더미 데이터
+      const serviceHistory: ServiceHistory[] = salesHistory.map(dto => ({
+        id: dto.historyId.toString(),
+        date: dto.date,
+        services: dto.services.map(service => ({
+          id: service.serviceId.toString(),
+          name: service.name,
+          amount: service.price
+        })),
+        subtotalAmount: dto.subtotalAmount,
+        discountAmount: dto.discountAmount,
+        finalAmount: dto.finalAmount,
+        memo: dto.memo
+      }));
+
+      const totalSpent = salesHistory.reduce((sum, history) => sum + history.finalAmount, 0);
+      const visitCount = salesHistory.length;
+
       const detail: CustomerDetail = {
         ...customer,
-        totalSpent: Math.floor(Math.random() * 500000),
-        visitCount: Math.floor(Math.random() * 20) + 1,
+        totalSpent,
+        visitCount,
         points: Math.floor(Math.random() * 5000),
         coupons: [
           { id: 'c1', name: '신규고객 할인', amount: 10000, type: 'fixed', createdDate: '2024-01-01', expiryDate: '2024-03-01', isUsed: false },
           { id: 'c2', name: '생일 축하 쿠폰', amount: 20, type: 'percent', createdDate: '2023-12-15', expiryDate: '2024-02-15', isUsed: true, usedDate: '2024-01-12' },
         ],
-        serviceHistory: [
-          { id: '1', date: customer.lastVisit || '방문 이력 없음', service: '커트', amount: 25000 },
-          { id: '2', date: '2024-01-10', service: '파마', amount: 80000 },
-        ]
+        serviceHistory
       };
       
       setCustomerDetail(detail);
     } catch (error) {
       console.error('고객 상세 정보 조회 실패:', error);
-    } finally {
-      setLoading(false);
     }
   };
   
-  if (!customer) return null;
-  
-  if (loading) {
-    return (
-      <Modal visible={visible} transparent={true} animationType="fade">
-        <View style={styles.overlay}>
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
-            <ThemedText style={styles.loadingText}>고객 정보를 불러오는 중...</ThemedText>
-          </View>
-        </View>
-      </Modal>
-    );
-  }
-  
-  if (!customerDetail) return null;
+  if (!customer || !customerDetail) return null;
 
   const getServiceIcon = (service: string) => {
     switch (service) {
@@ -228,16 +223,31 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
                 
                 return (
                   <>
-                    {displayHistory.map((service) => (
-                      <View key={service.id} style={styles.serviceItem}>
-                        <View style={styles.serviceIcon}>
-                          <Ionicons name={getServiceIcon(service.service)} size={20} color="#007AFF" />
+                    {displayHistory.map((history) => (
+                      <View key={history.id} style={styles.historyCard}>
+                        <View style={styles.historyHeader}>
+                          <ThemedText style={styles.historyDate}>{history.date}</ThemedText>
+                          <View style={styles.amountContainer}>
+                            {history.discountAmount > 0 && (
+                              <ThemedText style={styles.originalAmount}>₩{history.subtotalAmount.toLocaleString()}</ThemedText>
+                            )}
+                            <ThemedText style={styles.finalAmount}>₩{history.finalAmount.toLocaleString()}</ThemedText>
+                          </View>
                         </View>
-                        <View style={styles.serviceInfo}>
-                          <ThemedText style={styles.serviceName}>{service.service}</ThemedText>
-                          <ThemedText style={styles.serviceDate}>{service.date}</ThemedText>
+                        
+                        <View style={styles.servicesContainer}>
+                          {history.services.map((service) => (
+                            <View key={service.id} style={styles.serviceItem}>
+                              <Ionicons name={getServiceIcon(service.name)} size={16} color="#007AFF" />
+                              <ThemedText style={styles.serviceName}>{service.name}</ThemedText>
+                              <ThemedText style={styles.serviceAmount}>₩{service.amount.toLocaleString()}</ThemedText>
+                            </View>
+                          ))}
                         </View>
-                        <ThemedText style={styles.serviceAmount}>₩{service.amount.toLocaleString()}</ThemedText>
+                        
+                        {history.memo && (
+                          <ThemedText style={styles.historyMemo}>{history.memo}</ThemedText>
+                        )}
                       </View>
                     ))}
                     
@@ -519,38 +529,70 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 40,
   },
+  historyCard: {
+    backgroundColor: '#F8F9FA',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  historyDate: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1A1A1A',
+  },
+  amountContainer: {
+    alignItems: 'flex-end',
+  },
+  originalAmount: {
+    fontSize: 14,
+    color: '#8E8E93',
+    textDecorationLine: 'line-through',
+    marginBottom: 2,
+  },
+  finalAmount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#007AFF',
+  },
+  servicesContainer: {
+    gap: 8,
+  },
   serviceItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  serviceIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F0F8FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  serviceInfo: {
-    flex: 1,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    gap: 8,
   },
   serviceName: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  serviceDate: {
+    flex: 1,
     fontSize: 14,
-    color: '#8E8E93',
+    fontWeight: '500',
+    color: '#1A1A1A',
   },
   serviceAmount: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  historyMemo: {
+    fontSize: 12,
+    color: '#8E8E93',
+    fontStyle: 'italic',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
   },
   emptyHistory: {
     alignItems: 'center',
@@ -560,22 +602,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#8E8E93',
     marginTop: 12,
-  },
-  loadingContainer: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 40,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666',
   },
   showMoreButton: {
     flexDirection: 'row',
