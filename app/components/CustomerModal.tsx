@@ -8,19 +8,20 @@ interface Customer {
   id: string;
   name: string;
   phone: string;
-  lastVisit: string;
+  lastVisit: string | null;
 }
 
 interface CustomerModalProps {
   visible: boolean;
   customer?: Customer;
   onClose: () => void;
-  onSave: (customer: Omit<Customer, 'totalSpent' | 'visitCount' | 'points' | 'coupons' | 'serviceHistory'>) => void;
+  onSave: (customer: Omit<Customer, 'totalSpent' | 'visitCount' | 'points' | 'coupons' | 'serviceHistory'>) => Promise<boolean>;
 }
 
 export default function CustomerModal({ visible, customer, onClose, onSave }: CustomerModalProps) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [errors, setErrors] = useState<{name?: string; phone?: string}>({});
 
   useEffect(() => {
     if (customer) {
@@ -30,11 +31,61 @@ export default function CustomerModal({ visible, customer, onClose, onSave }: Cu
       setName('');
       setPhone('');
     }
+    setErrors({}); // 모달 열릴 때 에러 초기화
   }, [customer, visible]);
 
-  const handleSave = () => {
-    if (!name.trim() || !phone.trim()) {
-      Alert.alert('오류', '이름과 전화번호를 모두 입력해주세요.');
+  const validatePhone = (phoneNumber: string) => {
+    const phoneRegex = /^010-\d{4}-\d{4}$/;
+    return phoneRegex.test(phoneNumber);
+  };
+
+  const formatPhone = (text: string) => {
+    const numbers = text.replace(/[^0-9]/g, '');
+    if (numbers.length <= 3) {
+      return numbers;
+    } else if (numbers.length <= 7) {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+    } else {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
+    }
+  };
+
+  const handlePhoneChange = (text: string) => {
+    const formatted = formatPhone(text);
+    setPhone(formatted);
+    // 입력 시 에러 메시지 제거
+    if (errors.phone) {
+      setErrors(prev => ({ ...prev, phone: undefined }));
+    }
+  };
+
+  const handleNameChange = (text: string) => {
+    setName(text);
+    // 입력 시 에러 메시지 제거
+    if (errors.name) {
+      setErrors(prev => ({ ...prev, name: undefined }));
+    }
+  };
+
+  const handleSave = async () => {
+    const newErrors: {name?: string; phone?: string} = {};
+
+    // 이름 검증
+    if (!name.trim()) {
+      newErrors.name = '고객명을 입력해주세요.';
+    }
+
+    // 전화번호 검증
+    if (!phone.trim()) {
+      newErrors.phone = '전화번호를 입력해주세요.';
+    } else if (!validatePhone(phone.trim())) {
+      newErrors.phone = '전화번호를 010-0000-0000 형식으로 입력해주세요.';
+    }
+
+    setErrors(newErrors);
+
+    // 에러가 있으면 저장 중단
+    if (Object.keys(newErrors).length > 0) {
       return;
     }
 
@@ -42,11 +93,13 @@ export default function CustomerModal({ visible, customer, onClose, onSave }: Cu
       id: customer?.id || Date.now().toString(),
       name: name.trim(),
       phone: phone.trim(),
-      lastVisit: customer?.lastVisit || new Date().toISOString().split('T')[0]
+      lastVisit: customer?.lastVisit || null
     };
 
-    onSave(customerData);
-    onClose();
+    const success = await onSave(customerData);
+    if (success) {
+      onClose();
+    }
   };
 
   const isEdit = !!customer;
@@ -73,23 +126,30 @@ export default function CustomerModal({ visible, customer, onClose, onSave }: Cu
             <View style={styles.inputGroup}>
               <ThemedText style={styles.label}>고객명</ThemedText>
               <TextInput
-                style={styles.input}
+                style={[styles.input, errors.name && styles.inputError]}
                 placeholder="고객명을 입력하세요"
                 value={name}
-                onChangeText={setName}
+                onChangeText={handleNameChange}
                 autoFocus={!isEdit}
               />
+              {errors.name && (
+                <ThemedText style={styles.errorText}>{errors.name}</ThemedText>
+              )}
             </View>
 
             <View style={styles.inputGroup}>
               <ThemedText style={styles.label}>전화번호</ThemedText>
               <TextInput
-                style={styles.input}
-                placeholder="전화번호를 입력하세요"
+                style={[styles.input, errors.phone && styles.inputError]}
+                placeholder="010-0000-0000"
                 value={phone}
-                onChangeText={setPhone}
+                onChangeText={handlePhoneChange}
                 keyboardType="phone-pad"
+                maxLength={13}
               />
+              {errors.phone && (
+                <ThemedText style={styles.errorText}>{errors.phone}</ThemedText>
+              )}
             </View>
           </View>
 
@@ -198,5 +258,14 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: '600',
     fontSize: 16,
+  },
+  inputError: {
+    borderColor: '#FF3B30',
+    borderWidth: 1,
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 12,
+    marginTop: 4,
   },
 });
