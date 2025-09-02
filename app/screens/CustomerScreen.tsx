@@ -7,6 +7,7 @@ import CustomerModal from '@components/CustomerModal';
 import CustomerDetailModal from '@components/CustomerDetailModal';
 import { TextInput } from '@components/CustomTextInput';
 import { axiosInstance } from '@services/apiClient';
+import { showSuccess, showError, showConfirm } from '@shared/utils/alertUtils';
 
 interface ServiceHistory {
   id: string;
@@ -30,7 +31,7 @@ interface CustomerBasic {
   id: string;
   name: string;
   phone: string;
-  lastVisit: string;
+  lastVisit: string | null;
 }
 
 export default function CustomerScreen() {
@@ -41,35 +42,44 @@ export default function CustomerScreen() {
   const [editingCustomer, setEditingCustomer] = useState<CustomerBasic | undefined>();
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerBasic | undefined>();
 
-  const filteredCustomers = customers.filter(customer => 
-    customer.name.includes(searchText) || customer.phone.includes(searchText)
-  );
+  const filteredCustomers = customers
+    .filter(customer => customer.name.includes(searchText) || customer.phone.includes(searchText))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   useEffect(() => {
     fetchCustomers();
   }, []);
-  
+
   const fetchCustomers = async () => {
     try {
       const response = await axiosInstance.get('/customer/all');
-      setCustomers(response.data);
+      setCustomers(response.data.sort((a: CustomerBasic, b: CustomerBasic) => a.name.localeCompare(b.name)));
     } catch (error) {
       console.error('고객 목록 조회 실패:', error);
-      Alert.alert('오류', '고객 목록을 불러올 수 없습니다.');
     }
   };
 
-  const handleSaveCustomer = (customerData: CustomerBasic) => {
-    if (editingCustomer) {
-      // 수정
-      const updatedCustomer = {
-        ...editingCustomer,
-        ...customerData
-      };
-      setCustomers(prev => prev.map(c => c.id === customerData.id ? updatedCustomer : c));
-    } else {
-      // 새로 등록
-      setCustomers(prev => [customerData, ...prev]);
+  // customer 생성 or 수정
+  const handleSaveCustomer = async (customerData: CustomerBasic): Promise<boolean> => {
+    try {
+      const requestData = { name: customerData.name, phone: customerData.phone };
+      const response = editingCustomer 
+        ? await axiosInstance.put(`/customer/${customerData.id}`, requestData)
+        : await axiosInstance.post('/customer', requestData);
+
+      if (response.status === 200 || response.status === 201) {
+        if (editingCustomer) {
+          setCustomers(prev => prev.map(c => c.id === customerData.id ? { ...editingCustomer, ...customerData } : c).sort((a, b) => a.name.localeCompare(b.name)));
+        } else {
+          showSuccess("고객 등록 완료");
+          setCustomers(prev => [...prev, response.data].sort((a, b) => a.name.localeCompare(b.name)));
+        }
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.log(error);
+      return false;
     }
   };
 
@@ -98,17 +108,27 @@ export default function CustomerScreen() {
     setSelectedCustomer(undefined);
   };
 
-  const handleDeleteCustomer = (id: string) => {
-    Alert.alert(
-      '고객 삭제',
-      '정말 삭제하시겠습니까?',
-      [
-        { text: '취소', style: 'cancel' },
-        { text: '삭제', style: 'destructive', onPress: () => {
-          setCustomers(prev => prev.filter(customer => customer.id !== id));
-        }}
-      ]
-    );
+  const deleteCustomer = async (id: string) => {
+    try {
+      const response = await axiosInstance.delete(`/customer/${id}`);
+      if (response.status === 200 || response.status === 204) {
+        setCustomers(prev => prev.filter(customer => customer.id !== id));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleDeleteCustomer = async (id: string) => {
+    const confirmed = await showConfirm('정말 삭제하시겠습니까?', {
+      title: '고객 삭제',
+      confirmButtonText: '삭제',
+      denyButtonText: '취소'
+    });
+    
+    if (confirmed) {
+      await deleteCustomer(id);
+    }
   };
 
   return (
@@ -116,7 +136,7 @@ export default function CustomerScreen() {
       {/* 헤더 */}
       <View style={styles.header}>
         <ThemedText style={styles.title}>고객관리</ThemedText>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.addButton}
           onPress={handleAddCustomer}
         >
@@ -138,29 +158,31 @@ export default function CustomerScreen() {
 
 
       {/* 고객 목록 */}
-      <ScrollView 
+      <ScrollView
         style={styles.customerList}
         contentContainerStyle={styles.scrollContent}
       >
         {filteredCustomers.map((customer) => (
-          <TouchableOpacity 
-            key={customer.id} 
+          <TouchableOpacity
+            key={customer.id}
             style={styles.customerCard}
             onPress={() => handleCustomerPress(customer)}
           >
             <View style={styles.customerInfo}>
               <ThemedText style={styles.customerName}>{customer.name}</ThemedText>
               <ThemedText style={styles.customerPhone}>{customer.phone}</ThemedText>
-              <ThemedText style={styles.lastVisit}>최근 방문: {customer.lastVisit}</ThemedText>
+              <ThemedText style={styles.lastVisit}>
+                최근 방문: {customer.lastVisit || '방문 이력 없음'}
+              </ThemedText>
             </View>
             <View style={styles.actionButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.editButton}
                 onPress={() => handleEditCustomer(customer)}
               >
                 <Ionicons name="create-outline" size={20} color="#007AFF" />
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => handleDeleteCustomer(customer.id)}
               >
@@ -169,7 +191,7 @@ export default function CustomerScreen() {
             </View>
           </TouchableOpacity>
         ))}
-        
+
         {filteredCustomers.length === 0 && (
           <View style={styles.emptyState}>
             <Ionicons name="people-outline" size={48} color="#8E8E93" />
@@ -179,20 +201,20 @@ export default function CustomerScreen() {
           </View>
         )}
       </ScrollView>
-      
+
       <CustomerModal
         visible={modalVisible}
         customer={editingCustomer}
         onClose={handleCloseModal}
         onSave={handleSaveCustomer}
       />
-      
+
       <CustomerDetailModal
         visible={detailModalVisible}
         customer={selectedCustomer}
         onClose={handleCloseDetailModal}
       />
-      
+
 
     </SafeAreaView>
   );
