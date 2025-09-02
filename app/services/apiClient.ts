@@ -98,8 +98,8 @@ const handleServerMessage = async (response: AxiosResponse) => {
   const data = response.data;
 
   // 서버에서 성공 메시지를 보낸 경우
-  if (data.message && data.success) {
-    showSuccess(data.message);
+  if (data.code === 200 && data.data && typeof data.data === 'string') {
+    showSuccess(data.data);
   }
 };
 
