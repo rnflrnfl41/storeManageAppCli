@@ -2,50 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
-
-interface ServiceHistory {
-  id: string;
-  date: string;
-  service: string;
-  amount: number;
-}
-
-interface Coupon {
-  id: string;
-  name: string;
-  amount: number;
-  type: 'percent' | 'fixed';
-  createdDate: string;
-  expiryDate: string;
-  isUsed: boolean;
-  usedDate?: string;
-}
-
-interface CustomerBasic {
-  id: string;
-  name: string;
-  phone: string;
-  lastVisit: string | null;
-}
-
-interface Customer extends CustomerBasic {
-  totalSpent: number;
-  visitCount: number;
-  points: number;
-  coupons: Coupon[];
-  serviceHistory: ServiceHistory[];
-}
-
-interface CustomerDetailModalProps {
-  visible: boolean;
-  customer?: CustomerBasic;
-  onClose: () => void;
-}
+import { CustomerDetail, CustomerDetailModalProps } from '@shared/types/customerTypes';
 
 export default function CustomerDetailModal({ visible, customer, onClose }: CustomerDetailModalProps) {
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [showUsedCoupons, setShowUsedCoupons] = useState(false);
-  const [customerDetail, setCustomerDetail] = useState<Customer | null>(null);
+  const [customerDetail, setCustomerDetail] = useState<CustomerDetail | null>(null);
   const [loading, setLoading] = useState(false);
   
   useEffect(() => {
@@ -63,7 +25,7 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
       // const detail = await fetchCustomerDetailAPI(customer.id);
       
       // 임시 더미 데이터
-      const detail: Customer = {
+      const detail: CustomerDetail = {
         ...customer,
         totalSpent: Math.floor(Math.random() * 500000),
         visitCount: Math.floor(Math.random() * 20) + 1,

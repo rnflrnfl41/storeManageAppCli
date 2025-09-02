@@ -8,31 +8,7 @@ import CustomerDetailModal from '@components/CustomerDetailModal';
 import { TextInput } from '@components/CustomTextInput';
 import { axiosInstance } from '@services/apiClient';
 import { showSuccess, showError, showConfirm } from '@shared/utils/alertUtils';
-
-interface ServiceHistory {
-  id: string;
-  date: string;
-  service: string;
-  amount: number;
-}
-
-interface Coupon {
-  id: string;
-  name: string;
-  amount: number;
-  type: 'percent' | 'fixed';
-  createdDate: string;
-  expiryDate: string;
-  isUsed: boolean;
-  usedDate?: string;
-}
-
-interface CustomerBasic {
-  id: string;
-  name: string;
-  phone: string;
-  lastVisit: string | null;
-}
+import { CustomerBasic } from '@shared/types/customerTypes';
 
 export default function CustomerScreen() {
   const [customers, setCustomers] = useState<CustomerBasic[]>([]);
