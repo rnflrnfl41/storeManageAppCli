@@ -25,7 +25,7 @@ interface CustomerBasic {
   id: string;
   name: string;
   phone: string;
-  lastVisit: string;
+  lastVisit: string | null;
 }
 
 interface Customer extends CustomerBasic {
@@ -73,7 +73,7 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
           { id: 'c2', name: '생일 축하 쿠폰', amount: 20, type: 'percent', createdDate: '2023-12-15', expiryDate: '2024-02-15', isUsed: true, usedDate: '2024-01-12' },
         ],
         serviceHistory: [
-          { id: '1', date: customer.lastVisit, service: '커트', amount: 25000 },
+          { id: '1', date: customer.lastVisit || '방문 이력 없음', service: '커트', amount: 25000 },
           { id: '2', date: '2024-01-10', service: '파마', amount: 80000 },
         ]
       };
@@ -173,7 +173,7 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
                 </View>
                 <View style={styles.statTextContainer}>
                   <ThemedText style={styles.statLabel}>최근 방문일</ThemedText>
-                  <ThemedText style={styles.statValue}>{customerDetail.lastVisit}</ThemedText>
+                  <ThemedText style={styles.statValue}>{customerDetail.lastVisit || '방문 이력 없음'}</ThemedText>
                 </View>
               </View>
             </View>
