@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
-import { CustomerDetail, CustomerDetailModalProps } from '@shared/types/customerTypes';
+import { CustomerDetail, CustomerDetailModalProps, ServiceHistory, ServiceHistoryDto, CustomerBenefitResponse, Coupon } from '@shared/types/customerTypes';
+import { axiosInstance } from '@services/apiClient';
 
 export default function CustomerDetailModal({ visible, customer, onClose }: CustomerDetailModalProps) {
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [showUsedCoupons, setShowUsedCoupons] = useState(false);
   const [customerDetail, setCustomerDetail] = useState<CustomerDetail | null>(null);
-  const [loading, setLoading] = useState(false);
   
   useEffect(() => {
     if (visible && customer) {
@@ -19,57 +19,81 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
   const fetchCustomerDetail = async () => {
     if (!customer) return;
     
-    setLoading(true);
+    // 기본값으로 초기화
+    let serviceHistory: ServiceHistory[] = [];
+    let totalSpent = 0;
+    let visitCount = 0;
+    let points = 0;
+    let coupons: Coupon[] = [];
+
+    // 판매 이력 조회
     try {
-      // API 호출로 상세 정보 조회
-      // const detail = await fetchCustomerDetailAPI(customer.id);
+      const salesResponse = await axiosInstance.get<ServiceHistoryDto[]>(`/sales/${customer.id}`);
+      const salesHistory = salesResponse.data;
       
-      // 임시 더미 데이터
-      const detail: CustomerDetail = {
-        ...customer,
-        totalSpent: Math.floor(Math.random() * 500000),
-        visitCount: Math.floor(Math.random() * 20) + 1,
-        points: Math.floor(Math.random() * 5000),
-        coupons: [
-          { id: 'c1', name: '신규고객 할인', amount: 10000, type: 'fixed', createdDate: '2024-01-01', expiryDate: '2024-03-01', isUsed: false },
-          { id: 'c2', name: '생일 축하 쿠폰', amount: 20, type: 'percent', createdDate: '2023-12-15', expiryDate: '2024-02-15', isUsed: true, usedDate: '2024-01-12' },
-        ],
-        serviceHistory: [
-          { id: '1', date: customer.lastVisit || '방문 이력 없음', service: '커트', amount: 25000 },
-          { id: '2', date: '2024-01-10', service: '파마', amount: 80000 },
-        ]
-      };
-      
-      setCustomerDetail(detail);
+      serviceHistory = salesHistory.map(dto => ({
+        id: dto.historyId.toString(),
+        date: dto.date,
+        services: dto.services.map(service => ({
+          id: service.serviceId.toString(),
+          name: service.name,
+          amount: service.price
+        })),
+        subtotalAmount: dto.subtotalAmount,
+        discountAmount: dto.discountAmount,
+        finalAmount: dto.finalAmount,
+        memo: dto.memo
+      }));
+
+      totalSpent = salesHistory.reduce((sum, history) => sum + history.finalAmount, 0);
+      visitCount = salesHistory.length;
     } catch (error) {
-      console.error('고객 상세 정보 조회 실패:', error);
-    } finally {
-      setLoading(false);
+      console.error('판매 이력 조회 실패:', error);
     }
+
+    // 혜택 정보 조회
+    try {
+      const benefitResponse = await axiosInstance.get<CustomerBenefitResponse>(`/benefit/${customer.id}`);
+      const benefitData = benefitResponse.data;
+      
+      console.log(benefitData);
+
+      points = benefitData.points;
+      coupons = benefitData.couponDtoList.map(dto => ({
+        id: dto.id,
+        name: dto.name,
+        amount: parseInt(dto.amount),
+        type: dto.type as 'percent' | 'fixed',
+        createdDate: dto.createdDate,
+        expiryDate: dto.expiryDate,
+        used: dto.used,
+        usedDate: dto.usedDate
+      }));
+    } catch (error) {
+      console.error('혜택 정보 조회 실패:', error);
+    }
+
+    const detail: CustomerDetail = {
+      ...customer,
+      totalSpent,
+      visitCount,
+      points,
+      coupons,
+      serviceHistory
+    };
+    
+    setCustomerDetail(detail);
   };
   
-  if (!customer) return null;
-  
-  if (loading) {
-    return (
-      <Modal visible={visible} transparent={true} animationType="fade">
-        <View style={styles.overlay}>
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
-            <ThemedText style={styles.loadingText}>고객 정보를 불러오는 중...</ThemedText>
-          </View>
-        </View>
-      </Modal>
-    );
-  }
-  
-  if (!customerDetail) return null;
+  if (!customer || !customerDetail) return null;
 
   const getServiceIcon = (service: string) => {
     switch (service) {
-      case '커트': return 'scissors-outline';
+      case '커트': return 'cut-outline';
       case '파마': return 'water-outline';
       case '염색': return 'brush-outline';
+      case '트리트먼트': return 'leaf-outline';
+      case '스타일링': return 'sparkles-outline';
       default: return 'build-outline';
     }
   };
@@ -157,10 +181,10 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
             {/* 쿠폰 */}
             <View style={styles.section}>
               {(() => {
-                const activeCoupons = customerDetail.coupons.filter(c => !c.isUsed);
-                const usedCoupons = customerDetail.coupons.filter(c => c.isUsed);
+                const activeCoupons = customerDetail.coupons.filter(c => !c.used);
+                const usedCoupons = customerDetail.coupons.filter(c => c.used);
                 const displayCoupons = showUsedCoupons 
-                  ? customerDetail.coupons.sort((a, b) => a.isUsed ? 1 : -1)
+                  ? customerDetail.coupons.sort((a, b) => a.used ? 1 : -1)
                   : activeCoupons;
                 
                 return (
@@ -182,23 +206,23 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
                     </View>
                     
                     {displayCoupons.map((coupon) => (
-                      <View key={coupon.id} style={[styles.couponCard, coupon.isUsed && styles.usedCoupon]}>
+                      <View key={coupon.id} style={[styles.couponCard, coupon.used && styles.usedCoupon]}>
                         <View style={styles.couponItemHeader}>
-                          <ThemedText style={[styles.couponName, coupon.isUsed && styles.usedText]}>
+                          <ThemedText style={[styles.couponName, coupon.used && styles.usedText]}>
                             {coupon.name}
                           </ThemedText>
-                          <View style={[styles.statusBadge, coupon.isUsed ? styles.usedBadge : styles.activeBadge]}>
-                            <ThemedText style={[styles.statusText, coupon.isUsed ? styles.usedStatusText : styles.activeStatusText]}>
-                              {coupon.isUsed ? '사용완료' : '사용가능'}
+                          <View style={[styles.statusBadge, coupon.used ? styles.usedBadge : styles.activeBadge]}>
+                            <ThemedText style={[styles.statusText, coupon.used ? styles.usedStatusText : styles.activeStatusText]}>
+                              {coupon.used ? '사용완료' : '사용가능'}
                             </ThemedText>
                           </View>
                         </View>
-                        <ThemedText style={[styles.couponAmount, coupon.isUsed && styles.usedText]}>
+                        <ThemedText style={[styles.couponAmount, coupon.used && styles.usedText]}>
                           {coupon.type === 'percent' ? `${coupon.amount}% 할인` : `${coupon.amount.toLocaleString()}원 할인`}
                         </ThemedText>
                         <View style={styles.couponDetails}>
                           <ThemedText style={styles.couponDate}>생성일: {coupon.createdDate}</ThemedText>
-                          {coupon.isUsed && coupon.usedDate ? (
+                          {coupon.used && coupon.usedDate ? (
                             <ThemedText style={styles.couponDate}>사용일: {coupon.usedDate}</ThemedText>
                           ) : (
                             <ThemedText style={styles.couponDate}>만료일: {coupon.expiryDate}</ThemedText>
@@ -228,16 +252,31 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
                 
                 return (
                   <>
-                    {displayHistory.map((service) => (
-                      <View key={service.id} style={styles.serviceItem}>
-                        <View style={styles.serviceIcon}>
-                          <Ionicons name={getServiceIcon(service.service)} size={20} color="#007AFF" />
+                    {displayHistory.map((history) => (
+                      <View key={history.id} style={styles.historyCard}>
+                        <View style={styles.historyHeader}>
+                          <ThemedText style={styles.historyDate}>{history.date}</ThemedText>
+                          <View style={styles.amountContainer}>
+                            {history.discountAmount > 0 && (
+                              <ThemedText style={styles.originalAmount}>₩{history.subtotalAmount.toLocaleString()}</ThemedText>
+                            )}
+                            <ThemedText style={styles.finalAmount}>₩{history.finalAmount.toLocaleString()}</ThemedText>
+                          </View>
                         </View>
-                        <View style={styles.serviceInfo}>
-                          <ThemedText style={styles.serviceName}>{service.service}</ThemedText>
-                          <ThemedText style={styles.serviceDate}>{service.date}</ThemedText>
+                        
+                        <View style={styles.servicesContainer}>
+                          {history.services.map((service) => (
+                            <View key={service.id} style={styles.serviceItem}>
+                              <Ionicons name={getServiceIcon(service.name)} size={16} color="#007AFF" />
+                              <ThemedText style={styles.serviceName}>{service.name}</ThemedText>
+                              <ThemedText style={styles.serviceAmount}>₩{service.amount.toLocaleString()}</ThemedText>
+                            </View>
+                          ))}
                         </View>
-                        <ThemedText style={styles.serviceAmount}>₩{service.amount.toLocaleString()}</ThemedText>
+                        
+                        {history.memo && (
+                          <ThemedText style={styles.historyMemo}>{history.memo}</ThemedText>
+                        )}
                       </View>
                     ))}
                     
@@ -519,38 +558,70 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 40,
   },
+  historyCard: {
+    backgroundColor: '#F8F9FA',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  historyDate: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1A1A1A',
+  },
+  amountContainer: {
+    alignItems: 'flex-end',
+  },
+  originalAmount: {
+    fontSize: 14,
+    color: '#8E8E93',
+    textDecorationLine: 'line-through',
+    marginBottom: 2,
+  },
+  finalAmount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#007AFF',
+  },
+  servicesContainer: {
+    gap: 8,
+  },
   serviceItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  serviceIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F0F8FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  serviceInfo: {
-    flex: 1,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    gap: 8,
   },
   serviceName: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  serviceDate: {
+    flex: 1,
     fontSize: 14,
-    color: '#8E8E93',
+    fontWeight: '500',
+    color: '#1A1A1A',
   },
   serviceAmount: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  historyMemo: {
+    fontSize: 12,
+    color: '#8E8E93',
+    fontStyle: 'italic',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
   },
   emptyHistory: {
     alignItems: 'center',
@@ -560,22 +631,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#8E8E93',
     marginTop: 12,
-  },
-  loadingContainer: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 40,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666',
   },
   showMoreButton: {
     flexDirection: 'row',
