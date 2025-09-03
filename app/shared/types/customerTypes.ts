@@ -37,6 +37,22 @@ export interface ServiceItemDto {
   price: number;
 }
 
+export interface CouponDto {
+  id: string;
+  name: string;
+  amount: string;
+  type: string;
+  createdDate: string;
+  expiryDate: string;
+  used: boolean;
+  usedDate?: string;
+}
+
+export interface CustomerBenefitResponse {
+  points: number;
+  couponDtoList: CouponDto[];
+}
+
 export interface Coupon {
   id: string;
   name: string;
@@ -44,7 +60,7 @@ export interface Coupon {
   type: 'percent' | 'fixed';
   createdDate: string;
   expiryDate: string;
-  isUsed: boolean;
+  used: boolean;
   usedDate?: string;
 }
 
