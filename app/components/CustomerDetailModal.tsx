@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Modal, ScrollView, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
-import { CustomerDetail, CustomerDetailModalProps, ServiceHistory, ServiceHistoryDto } from '@shared/types/customerTypes';
+import { CustomerDetail, CustomerDetailModalProps, ServiceHistory, ServiceHistoryDto, CustomerBenefitResponse, Coupon } from '@shared/types/customerTypes';
 import { axiosInstance } from '@services/apiClient';
 
 export default function CustomerDetailModal({ visible, customer, onClose }: CustomerDetailModalProps) {
@@ -19,11 +19,19 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
   const fetchCustomerDetail = async () => {
     if (!customer) return;
     
+    // 기본값으로 초기화
+    let serviceHistory: ServiceHistory[] = [];
+    let totalSpent = 0;
+    let visitCount = 0;
+    let points = 0;
+    let coupons: Coupon[] = [];
+
+    // 판매 이력 조회
     try {
-      const response = await axiosInstance.get<ServiceHistoryDto[]>(`/sales/${customer.id}`);
-      const salesHistory = response.data;
+      const salesResponse = await axiosInstance.get<ServiceHistoryDto[]>(`/sales/${customer.id}`);
+      const salesHistory = salesResponse.data;
       
-      const serviceHistory: ServiceHistory[] = salesHistory.map(dto => ({
+      serviceHistory = salesHistory.map(dto => ({
         id: dto.historyId.toString(),
         date: dto.date,
         services: dto.services.map(service => ({
@@ -37,34 +45,55 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
         memo: dto.memo
       }));
 
-      const totalSpent = salesHistory.reduce((sum, history) => sum + history.finalAmount, 0);
-      const visitCount = salesHistory.length;
-
-      const detail: CustomerDetail = {
-        ...customer,
-        totalSpent,
-        visitCount,
-        points: Math.floor(Math.random() * 5000),
-        coupons: [
-          { id: 'c1', name: '신규고객 할인', amount: 10000, type: 'fixed', createdDate: '2024-01-01', expiryDate: '2024-03-01', isUsed: false },
-          { id: 'c2', name: '생일 축하 쿠폰', amount: 20, type: 'percent', createdDate: '2023-12-15', expiryDate: '2024-02-15', isUsed: true, usedDate: '2024-01-12' },
-        ],
-        serviceHistory
-      };
-      
-      setCustomerDetail(detail);
+      totalSpent = salesHistory.reduce((sum, history) => sum + history.finalAmount, 0);
+      visitCount = salesHistory.length;
     } catch (error) {
-      console.error('고객 상세 정보 조회 실패:', error);
+      console.error('판매 이력 조회 실패:', error);
     }
+
+    // 혜택 정보 조회
+    try {
+      const benefitResponse = await axiosInstance.get<CustomerBenefitResponse>(`/benefit/${customer.id}`);
+      const benefitData = benefitResponse.data;
+      
+      console.log(benefitData);
+
+      points = benefitData.points;
+      coupons = benefitData.couponDtoList.map(dto => ({
+        id: dto.id,
+        name: dto.name,
+        amount: parseInt(dto.amount),
+        type: dto.type as 'percent' | 'fixed',
+        createdDate: dto.createdDate,
+        expiryDate: dto.expiryDate,
+        used: dto.used,
+        usedDate: dto.usedDate
+      }));
+    } catch (error) {
+      console.error('혜택 정보 조회 실패:', error);
+    }
+
+    const detail: CustomerDetail = {
+      ...customer,
+      totalSpent,
+      visitCount,
+      points,
+      coupons,
+      serviceHistory
+    };
+    
+    setCustomerDetail(detail);
   };
   
   if (!customer || !customerDetail) return null;
 
   const getServiceIcon = (service: string) => {
     switch (service) {
-      case '커트': return 'scissors-outline';
+      case '커트': return 'cut-outline';
       case '파마': return 'water-outline';
       case '염색': return 'brush-outline';
+      case '트리트먼트': return 'leaf-outline';
+      case '스타일링': return 'sparkles-outline';
       default: return 'build-outline';
     }
   };
@@ -152,10 +181,10 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
             {/* 쿠폰 */}
             <View style={styles.section}>
               {(() => {
-                const activeCoupons = customerDetail.coupons.filter(c => !c.isUsed);
-                const usedCoupons = customerDetail.coupons.filter(c => c.isUsed);
+                const activeCoupons = customerDetail.coupons.filter(c => !c.used);
+                const usedCoupons = customerDetail.coupons.filter(c => c.used);
                 const displayCoupons = showUsedCoupons 
-                  ? customerDetail.coupons.sort((a, b) => a.isUsed ? 1 : -1)
+                  ? customerDetail.coupons.sort((a, b) => a.used ? 1 : -1)
                   : activeCoupons;
                 
                 return (
@@ -177,23 +206,23 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
                     </View>
                     
                     {displayCoupons.map((coupon) => (
-                      <View key={coupon.id} style={[styles.couponCard, coupon.isUsed && styles.usedCoupon]}>
+                      <View key={coupon.id} style={[styles.couponCard, coupon.used && styles.usedCoupon]}>
                         <View style={styles.couponItemHeader}>
-                          <ThemedText style={[styles.couponName, coupon.isUsed && styles.usedText]}>
+                          <ThemedText style={[styles.couponName, coupon.used && styles.usedText]}>
                             {coupon.name}
                           </ThemedText>
-                          <View style={[styles.statusBadge, coupon.isUsed ? styles.usedBadge : styles.activeBadge]}>
-                            <ThemedText style={[styles.statusText, coupon.isUsed ? styles.usedStatusText : styles.activeStatusText]}>
-                              {coupon.isUsed ? '사용완료' : '사용가능'}
+                          <View style={[styles.statusBadge, coupon.used ? styles.usedBadge : styles.activeBadge]}>
+                            <ThemedText style={[styles.statusText, coupon.used ? styles.usedStatusText : styles.activeStatusText]}>
+                              {coupon.used ? '사용완료' : '사용가능'}
                             </ThemedText>
                           </View>
                         </View>
-                        <ThemedText style={[styles.couponAmount, coupon.isUsed && styles.usedText]}>
+                        <ThemedText style={[styles.couponAmount, coupon.used && styles.usedText]}>
                           {coupon.type === 'percent' ? `${coupon.amount}% 할인` : `${coupon.amount.toLocaleString()}원 할인`}
                         </ThemedText>
                         <View style={styles.couponDetails}>
                           <ThemedText style={styles.couponDate}>생성일: {coupon.createdDate}</ThemedText>
-                          {coupon.isUsed && coupon.usedDate ? (
+                          {coupon.used && coupon.usedDate ? (
                             <ThemedText style={styles.couponDate}>사용일: {coupon.usedDate}</ThemedText>
                           ) : (
                             <ThemedText style={styles.couponDate}>만료일: {coupon.expiryDate}</ThemedText>
