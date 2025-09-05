@@ -5,11 +5,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { TabParamList } from '@types';
 import { ThemedText } from '@components/ThemedText';
 
-import HomeScreen from '@screens/HomeScreen';
-import SalesScreen from '@screens/SalesScreen';
-import ExpenseScreen from '@screens/ExpenseScreen';
-import CustomerScreen from '@screens/CustomerScreen';
-import CouponScreen from '@screens/CouponScreen';
+import HomeScreen from '@screens/Home/HomeScreen';
+import SalesScreen from '@screens/SalesScreen/SalesScreen';
+import ExpenseScreen from '@/app/screens/Expense/ExpenseScreen';
+import CustomerScreen from '@screens/Customer/CustomerScreen';
+import CouponScreen from '@/app/screens/Coupon/CouponScreen';
 
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;

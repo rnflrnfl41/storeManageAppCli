@@ -3,8 +3,8 @@ import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
-import CustomerModal from '@components/CustomerModal';
-import CustomerDetailModal from '@components/CustomerDetailModal';
+import CustomerModal from './components/CustomerModal';
+import CustomerDetailModal from './components/CustomerDetailModal';
 import { TextInput } from '@components/CustomTextInput';
 import { axiosInstance } from '@services/apiClient';
 import { showSuccess, showError, showConfirm } from '@shared/utils/alertUtils';

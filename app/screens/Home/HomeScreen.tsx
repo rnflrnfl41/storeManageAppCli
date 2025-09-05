@@ -3,10 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, TouchableOpacity, View, Image, Modal, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import AddScheduleModal from '@components/AddScheduleModal';
+import AddScheduleModal from './components/AddScheduleModal';
 import CalendarModal from '@components/CalendarModal';
 import '@config/calendarConfig';
-import { calendarTheme } from '@shared/styles/CalendarStyles';
 import { homeScreenStyles } from '@shared/styles/HomeScreenStyles';
 
 import { ThemedText } from '@components/ThemedText';
@@ -188,7 +187,7 @@ export default function HomeScreen() {
           <View style={homeScreenStyles.header}>
             <View style={homeScreenStyles.storeInfo}>
               <Image 
-                source={require('../../assets/haircity-logo.png')} 
+                source={require('@assets/haircity-logo.png')} 
                 style={homeScreenStyles.logo}
                 resizeMode="contain"
               />
