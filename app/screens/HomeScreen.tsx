@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, TouchableOpacity, View, Image, Modal, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Calendar } from 'react-native-calendars';
 import AddScheduleModal from '@components/AddScheduleModal';
+import CalendarModal from '@components/CalendarModal';
 import '@config/calendarConfig';
 import { calendarTheme } from '@shared/styles/CalendarStyles';
 import { homeScreenStyles } from '@shared/styles/HomeScreenStyles';
@@ -373,46 +373,16 @@ export default function HomeScreen() {
           onSave={handleSaveSchedule}
         />
 
-        {/* 캘린더 모달 */}
-        <Modal
+        <CalendarModal
           visible={calendarVisible}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setCalendarVisible(false)}
-        >
-          <TouchableOpacity 
-            style={homeScreenStyles.calendarModalOverlay}
-            activeOpacity={1}
-            onPress={() => setCalendarVisible(false)}
-          >
-            <TouchableOpacity 
-              style={homeScreenStyles.calendarModalContent}
-              activeOpacity={1}
-              onPress={(e) => e.stopPropagation()}
-            >
-              <View style={homeScreenStyles.calendarModalHeader}>
-                <ThemedText style={homeScreenStyles.calendarModalTitle}>날짜 선택</ThemedText>
-                <TouchableOpacity
-                  style={homeScreenStyles.calendarCloseButton}
-                  onPress={() => setCalendarVisible(false)}
-                >
-                  <Ionicons name="close" size={28} color="#8E8E93" />
-                </TouchableOpacity>
-              </View>
-              <Calendar
-                current={selectedDate.toISOString().split('T')[0]}
-                onDayPress={handleCalendarDateSelect}
-                markedDates={{
-                  [selectedDate.toISOString().split('T')[0]]: {
-                    selected: true,
-                    selectedColor: '#007AFF'
-                  }
-                }}
-                theme={calendarTheme}
-              />
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </Modal>
+          currentDate={selectedDate}
+          onClose={() => setCalendarVisible(false)}
+          onSelect={(dateString) => {
+            setSelectedDate(new Date(dateString));
+            setCalendarVisible(false);
+            setShowAllSchedules(false);
+          }}
+        />
 
 
       </View>
