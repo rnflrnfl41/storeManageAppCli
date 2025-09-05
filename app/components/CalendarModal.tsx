@@ -1,10 +1,9 @@
 import React from 'react';
-import { Modal, TouchableOpacity, View } from 'react-native';
+import { Modal, TouchableOpacity, View, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Calendar } from 'react-native-calendars';
 import { ThemedText } from '@components/ThemedText';
-import { calendarTheme } from '@shared/styles/CalendarStyles';
-import { homeScreenStyles } from '@shared/styles/HomeScreenStyles';
+import { calendarTheme, calendarStyles } from '@shared/styles/CalendarStyles';
 
 interface CalendarModalProps {
   visible: boolean;
@@ -34,19 +33,19 @@ export default function CalendarModal({
       onRequestClose={onClose}
     >
       <TouchableOpacity
-        style={homeScreenStyles.calendarModalOverlay}
+        style={calendarStyles.calendarModalOverlay}
         activeOpacity={1}
         onPress={onClose}
       >
         <TouchableOpacity
-          style={homeScreenStyles.calendarModalContent}
+          style={calendarStyles.calendarModalContent}
           activeOpacity={1}
           onPress={(e) => e.stopPropagation()}
         >
-          <View style={homeScreenStyles.calendarModalHeader}>
-            <ThemedText style={homeScreenStyles.calendarModalTitle}>{title}</ThemedText>
+          <View style={calendarStyles.calendarModalHeader}>
+            <ThemedText style={calendarStyles.calendarModalTitle}>{title}</ThemedText>
             <TouchableOpacity
-              style={homeScreenStyles.calendarCloseButton}
+              style={calendarStyles.calendarCloseButton}
               onPress={onClose}
             >
               <Ionicons name="close" size={28} color="#8E8E93" />
