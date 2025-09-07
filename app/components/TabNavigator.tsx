@@ -6,10 +6,10 @@ import { TabParamList } from '@types';
 import { ThemedText } from '@components/ThemedText';
 
 import HomeScreen from '@screens/Home/HomeScreen';
-import SalesScreen from '@screens/SalesScreen/SalesScreen';
-import ExpenseScreen from '@/app/screens/Expense/ExpenseScreen';
+import SalesScreen from '@screens/Sales/SalesScreen';
+import ExpenseScreen from '@screens/Expense/ExpenseScreen';
 import CustomerScreen from '@screens/Customer/CustomerScreen';
-import CouponScreen from '@/app/screens/Coupon/CouponScreen';
+import CouponScreen from '@screens/Coupon/CouponScreen';
 
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
