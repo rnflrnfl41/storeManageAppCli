@@ -14,6 +14,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import CalendarModal from '@components/CalendarModal';
 import { ThemedText } from '@components/ThemedText';
 import { LineChart } from 'react-native-chart-kit';
+import { showConfirm, showError } from '@utils/alertUtils';
 
 interface Customer {
   id: string;
@@ -106,19 +107,19 @@ const services: Service[] = [
 const generateMockData = (): SalesData[] => {
   const mockData: SalesData[] = [];
   const today = new Date();
-  
+
   // 최근 2주간의 가라 데이터 생성
   for (let i = 0; i < 14; i++) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
-    
+
     // 하루에 3-8개의 매출 생성
     const salesCount = Math.floor(Math.random() * 6) + 3;
-    
+
     for (let j = 0; j < salesCount; j++) {
       const hour = Math.floor(Math.random() * 12) + 9; // 9시-20시
       const minute = Math.floor(Math.random() * 60);
-      
+
       const services = [
         '커트',
         '파마',
@@ -135,19 +136,19 @@ const generateMockData = (): SalesData[] => {
         '두피케어',
         '웨딩헤어'
       ];
-      
+
       const amounts = [25000, 35000, 45000, 55000, 65000, 75000, 85000, 95000, 120000, 150000, 180000, 30000, 40000, 200000];
       const customers = ['김민수', '이영희', '박철수', '최지영', '정수현', '강미영', '윤서준', '임하늘', '조은비', '한지우'];
-      
+
       const randomIndex = Math.floor(Math.random() * services.length);
       const customerIndex = Math.floor(Math.random() * customers.length);
-      
+
       const originalAmount = amounts[randomIndex];
       const hasDiscount = Math.random() > 0.6;
       let discountAmount = 0;
       let usedCoupon = undefined;
       let usedPoints = undefined;
-      
+
       if (hasDiscount) {
         const discountType = Math.random();
         if (discountType > 0.7) {
@@ -159,7 +160,7 @@ const generateMockData = (): SalesData[] => {
             { name: '5만원 할인쿠폰', type: 'fixed', value: 50000 }
           ];
           const coupon = coupons[Math.floor(Math.random() * coupons.length)];
-          discountAmount = coupon.type === 'percent' 
+          discountAmount = coupon.type === 'percent'
             ? Math.floor(originalAmount * (coupon.value / 100))
             : coupon.value;
           usedCoupon = { name: coupon.name, discountAmount };
@@ -172,7 +173,7 @@ const generateMockData = (): SalesData[] => {
           discountAmount = Math.floor(originalAmount * 0.1);
         }
       }
-      
+
       mockData.push({
         id: `${date.getTime()}-${j}`,
         originalAmount,
@@ -188,7 +189,7 @@ const generateMockData = (): SalesData[] => {
       });
     }
   }
-  
+
   return mockData.sort((a, b) => new Date(a.date + ' ' + a.time).getTime() - new Date(b.date + ' ' + b.time).getTime());
 };
 
@@ -206,7 +207,7 @@ export default function SalesScreen() {
   const [customerSearchVisible, setCustomerSearchVisible] = useState(false);
   const [customerSearchText, setCustomerSearchText] = useState('');
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
-  const [serviceAmounts, setServiceAmounts] = useState<{[key: string]: number}>({});
+  const [serviceAmounts, setServiceAmounts] = useState<{ [key: string]: number }>({});
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const [usedPoints, setUsedPoints] = useState(0);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -214,10 +215,10 @@ export default function SalesScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [showAllSales, setShowAllSales] = useState(false);
-  const [tooltip, setTooltip] = useState<{visible: boolean, x: number, y: number, data: any} | null>(null);
+  const [tooltip, setTooltip] = useState<{ visible: boolean, x: number, y: number, data: any } | null>(null);
 
-  const filteredCustomers = mockCustomers.filter(customer => 
-    customer.name.includes(customerSearchText) || 
+  const filteredCustomers = mockCustomers.filter(customer =>
+    customer.name.includes(customerSearchText) ||
     customer.phone.includes(customerSearchText)
   );
 
@@ -267,15 +268,15 @@ export default function SalesScreen() {
   const calculateFinalAmount = () => {
     const totalAmount = getTotalServiceAmount();
     let discount = 0;
-    
+
     if (selectedCoupon) {
-      discount += selectedCoupon.discountType === 'percent' 
+      discount += selectedCoupon.discountType === 'percent'
         ? Math.floor(totalAmount * (selectedCoupon.discountValue / 100))
         : selectedCoupon.discountValue;
     }
-    
+
     discount += usedPoints;
-    
+
     return Math.max(0, totalAmount - discount);
   };
 
@@ -294,24 +295,24 @@ export default function SalesScreen() {
 
   const addSales = () => {
     if (selectedServices.length === 0 || getTotalServiceAmount() <= 0) {
-      Alert.alert('오류', '서비스와 금액을 선택해주세요.');
+      showError('서비스와 금액을 선택해주세요.');
       return;
     }
 
     const now = new Date();
     const totalAmount = getTotalServiceAmount();
     let totalDiscount = 0;
-    
+
     if (selectedCoupon) {
-      totalDiscount += selectedCoupon.discountType === 'percent' 
+      totalDiscount += selectedCoupon.discountType === 'percent'
         ? Math.floor(totalAmount * (selectedCoupon.discountValue / 100))
         : selectedCoupon.discountValue;
     }
-    
+
     totalDiscount += usedPoints;
-    
+
     const serviceNames = selectedServices.map(s => s.name).join(', ');
-    
+
     const newSales: SalesData = {
       id: Date.now().toString(),
       originalAmount: totalAmount,
@@ -324,7 +325,7 @@ export default function SalesScreen() {
       customerName: selectedCustomer?.name,
       usedCoupon: selectedCoupon ? {
         name: selectedCoupon.name,
-        discountAmount: selectedCoupon.discountType === 'percent' 
+        discountAmount: selectedCoupon.discountType === 'percent'
           ? Math.floor(totalAmount * (selectedCoupon.discountValue / 100))
           : selectedCoupon.discountValue
       } : undefined,
@@ -332,7 +333,7 @@ export default function SalesScreen() {
     };
 
     if (editingId) {
-      setSalesData(prev => prev.map(item => 
+      setSalesData(prev => prev.map(item =>
         item.id === editingId ? { ...newSales, id: editingId } : item
       ));
     } else {
@@ -359,15 +360,18 @@ export default function SalesScreen() {
     setDetailModalVisible(true);
   };
 
-  const deleteSales = (id: string) => {
-    Alert.alert(
-      '매출 취소',
-      '이 매출을 취소하시겠습니까?',
-      [
-        { text: '취소', style: 'cancel' },
-        { text: '확인', onPress: () => setSalesData(prev => prev.filter(item => item.id !== id)) },
-      ]
-    );
+  const deleteSales = async (id: string) => {
+
+    const confirmed = await showConfirm('정말 삭제하시겠습니까?', {
+      title: '매출 취소',
+      confirmButtonText: '확인',
+      denyButtonText: '취소'
+    });
+
+    if (confirmed) {
+      await setSalesData(prev => prev.filter(item => item.id !== id));
+    }
+
   };
 
   const getTodaySales = () => {
@@ -382,31 +386,6 @@ export default function SalesScreen() {
   const isToday = (dateString: string) => {
     const today = new Date().toISOString().split('T')[0];
     return dateString === today;
-  };
-
-  const generateCalendarDays = () => {
-    const currentDate = new Date(selectedDate);
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - firstDay.getDay());
-    
-    const days = [];
-    for (let i = 0; i < 42; i++) {
-      const day = new Date(startDate);
-      day.setDate(startDate.getDate() + i);
-      days.push(day);
-    }
-    
-    return { days, currentMonth: month, currentYear: year };
-  };
-
-  const selectCalendarDate = (date: Date) => {
-    setSelectedDate(date.toISOString().split('T')[0]);
-    setCalendarVisible(false);
   };
 
   const navigateDate = (direction: 'prev' | 'next') => {
@@ -435,7 +414,7 @@ export default function SalesScreen() {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - 6);
       const dates = [];
-      
+
       for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
         dates.push(d.toISOString().split('T')[0]);
       }
@@ -458,7 +437,7 @@ export default function SalesScreen() {
       const startDate = new Date();
       startDate.setMonth(startDate.getMonth() - 6);
       const months = [];
-      
+
       for (let d = new Date(startDate); d <= endDate; d.setMonth(d.getMonth() + 1)) {
         months.push(d.toISOString().slice(0, 7));
       }
@@ -500,24 +479,24 @@ export default function SalesScreen() {
       const chartData = getChartData();
       const selectedDate = chartData.dates[data.index];
       const amount = chartData.datasets[0].data[data.index];
-      const salesCount = viewType === 'daily' 
+      const salesCount = viewType === 'daily'
         ? salesData.filter(item => item.date === selectedDate).length
         : salesData.filter(item => item.date.startsWith(selectedDate)).length;
-      
+
       const tooltipData = {
         date: selectedDate,
         amount,
         salesCount,
         viewType
       };
-      
+
       setTooltip({
         visible: true,
         x: 0,
         y: 0,
         data: tooltipData
       });
-      
+
       // 3초 후 자동으로 숨기기
       setTimeout(() => {
         setTooltip(null);
@@ -530,7 +509,7 @@ export default function SalesScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -614,13 +593,13 @@ export default function SalesScreen() {
             <Ionicons name="information-circle-outline" size={14} color="#8E8E93" />
             <ThemedText style={styles.chartHintText}>점을 클릭하면 상세 정보를 볼 수 있습니다</ThemedText>
           </View>
-          
+
           {/* 툴팁 */}
           {tooltip && (
             <View style={styles.tooltip}>
               <View style={styles.tooltipContent}>
                 <ThemedText style={styles.tooltipTitle}>
-                  {tooltip.data.viewType === 'daily' 
+                  {tooltip.data.viewType === 'daily'
                     ? `${new Date(tooltip.data.date).getMonth() + 1}월 ${new Date(tooltip.data.date).getDate()}일`
                     : `${tooltip.data.date.slice(-2)}월`
                   }
@@ -656,7 +635,7 @@ export default function SalesScreen() {
               <Ionicons name="chevron-forward" size={24} color="#007AFF" />
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.dayStats}>
             <ThemedText style={styles.dayStatsText}>
               총 {getSelectedDateSales().length}건 • {getTotalAmount(getSelectedDateSales()).toLocaleString()}원
@@ -692,10 +671,10 @@ export default function SalesScreen() {
                           <ThemedText style={styles.customerName}> • {item.customerName}</ThemedText>
                         )}
                         <View style={styles.paymentBadgeSmall}>
-                          <Ionicons 
-                            name={item.paymentMethod === 'card' ? 'card' : 'cash'} 
-                            size={12} 
-                            color={item.paymentMethod === 'card' ? '#007AFF' : '#34C759'} 
+                          <Ionicons
+                            name={item.paymentMethod === 'card' ? 'card' : 'cash'}
+                            size={12}
+                            color={item.paymentMethod === 'card' ? '#007AFF' : '#34C759'}
                           />
                         </View>
                       </View>
@@ -718,17 +697,17 @@ export default function SalesScreen() {
                 ))
               }
               {getSelectedDateSales().length > 5 && (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.showMoreButton}
                   onPress={() => setShowAllSales(!showAllSales)}
                 >
                   <ThemedText style={styles.showMoreText}>
                     {showAllSales ? '접기' : `더보기 (+${getSelectedDateSales().length - 5})`}
                   </ThemedText>
-                  <Ionicons 
-                    name={showAllSales ? "chevron-up" : "chevron-down"} 
-                    size={20} 
-                    color="#007AFF" 
+                  <Ionicons
+                    name={showAllSales ? "chevron-up" : "chevron-down"}
+                    size={20}
+                    color="#007AFF"
                   />
                 </TouchableOpacity>
               )}
@@ -753,11 +732,11 @@ export default function SalesScreen() {
               <ThemedText style={styles.modalTitle}>
                 {editingId ? '매출 수정' : '매출 등록'}
               </ThemedText>
-              
+
               {/* 고객 선택 */}
               <View style={styles.inputContainer}>
                 <ThemedText style={styles.inputLabel}>고객 선택</ThemedText>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.customerSelectButton}
                   onPress={() => setCustomerSearchVisible(true)}
                 >
@@ -796,10 +775,10 @@ export default function SalesScreen() {
                         ]}
                         onPress={() => toggleService(service)}
                       >
-                        <Ionicons 
-                          name={service.icon as any} 
-                          size={20} 
-                          color={isSelected ? "#ffffff" : "#4A90E2"} 
+                        <Ionicons
+                          name={service.icon as any}
+                          size={20}
+                          color={isSelected ? "#ffffff" : "#4A90E2"}
                         />
                         <ThemedText style={[
                           styles.serviceIconText,
@@ -834,25 +813,25 @@ export default function SalesScreen() {
                         </ThemedText>
                       </View>
                       <View style={styles.amountAdjustContainer}>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                           style={styles.adjustButton}
                           onPress={() => adjustServiceAmount(service.id, -10000)}
                         >
                           <ThemedText style={styles.adjustButtonText}>-10,000</ThemedText>
                         </TouchableOpacity>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                           style={styles.adjustButton}
                           onPress={() => adjustServiceAmount(service.id, -1000)}
                         >
                           <ThemedText style={styles.adjustButtonText}>-1,000</ThemedText>
                         </TouchableOpacity>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                           style={styles.adjustButton}
                           onPress={() => adjustServiceAmount(service.id, 1000)}
                         >
                           <ThemedText style={styles.adjustButtonText}>+1,000</ThemedText>
                         </TouchableOpacity>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                           style={styles.adjustButton}
                           onPress={() => adjustServiceAmount(service.id, 10000)}
                         >
@@ -882,7 +861,7 @@ export default function SalesScreen() {
               {selectedCustomer && (
                 <View style={styles.inputContainer}>
                   <ThemedText style={styles.inputLabel}>할인 혜택</ThemedText>
-                  
+
                   {selectedCustomer.coupons.length > 0 && (
                     <View style={styles.couponSection}>
                       <ThemedText style={styles.sectionSubtitle}>쿠폰 사용</ThemedText>
@@ -897,7 +876,7 @@ export default function SalesScreen() {
                         >
                           <ThemedText style={styles.couponName}>{coupon.name}</ThemedText>
                           <ThemedText style={styles.couponValue}>
-                            {coupon.discountType === 'percent' 
+                            {coupon.discountType === 'percent'
                               ? `${coupon.discountValue}% 할인`
                               : `${coupon.discountValue.toLocaleString()}원 할인`
                             }
@@ -906,7 +885,7 @@ export default function SalesScreen() {
                       ))}
                     </View>
                   )}
-                  
+
                   <View style={styles.pointsSection}>
                     <ThemedText style={styles.sectionSubtitle}>포인트 사용 (보유: {selectedCustomer.points.toLocaleString()}P)</ThemedText>
                     <View style={styles.pointsInputContainer}>
@@ -921,7 +900,7 @@ export default function SalesScreen() {
                         placeholder="사용할 포인트"
                         keyboardType="numeric"
                       />
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={styles.maxPointsButton}
                         onPress={() => {
                           const totalAmount = getTotalServiceAmount();
@@ -965,10 +944,10 @@ export default function SalesScreen() {
                     <View style={styles.summaryRow}>
                       <ThemedText style={styles.summaryLabel}>할인</ThemedText>
                       <ThemedText style={styles.discountValue}>-{(
-                        (selectedCoupon ? 
-                          (selectedCoupon.discountType === 'percent' 
+                        (selectedCoupon ?
+                          (selectedCoupon.discountType === 'percent'
                             ? Math.floor(getTotalServiceAmount() * (selectedCoupon.discountValue / 100))
-                            : selectedCoupon.discountValue) 
+                            : selectedCoupon.discountValue)
                           : 0) + usedPoints
                       ).toLocaleString()}원</ThemedText>
                     </View>
@@ -1022,31 +1001,31 @@ export default function SalesScreen() {
                 <Ionicons name="close" size={24} color="#8E8E93" />
               </TouchableOpacity>
             </View>
-            
+
             {selectedSale && (
               <View style={styles.detailContent}>
                 <View style={styles.detailRow}>
                   <ThemedText style={styles.detailLabel}>서비스</ThemedText>
                   <ThemedText style={styles.detailValue}>{selectedSale.description}</ThemedText>
                 </View>
-                
+
                 <View style={styles.detailRow}>
                   <ThemedText style={styles.detailLabel}>원래 금액</ThemedText>
                   <ThemedText style={styles.detailValue}>{selectedSale.originalAmount.toLocaleString()}원</ThemedText>
                 </View>
-                
+
                 {selectedSale.discountAmount > 0 && (
                   <View style={styles.detailRow}>
                     <ThemedText style={styles.detailLabel}>할인 금액</ThemedText>
                     <ThemedText style={styles.discountAmount}>-{selectedSale.discountAmount.toLocaleString()}원</ThemedText>
                   </View>
                 )}
-                
+
                 <View style={styles.detailRow}>
                   <ThemedText style={styles.detailLabel}>최종 결제</ThemedText>
                   <ThemedText style={styles.detailAmount}>{selectedSale.finalAmount.toLocaleString()}원</ThemedText>
                 </View>
-                
+
                 {selectedSale.usedCoupon && (
                   <View style={styles.detailRow}>
                     <ThemedText style={styles.detailLabel}>사용 쿠폰</ThemedText>
@@ -1056,41 +1035,41 @@ export default function SalesScreen() {
                     </View>
                   </View>
                 )}
-                
+
                 {selectedSale.usedPoints && (
                   <View style={styles.detailRow}>
                     <ThemedText style={styles.detailLabel}>사용 포인트</ThemedText>
                     <ThemedText style={styles.pointsUsed}>{selectedSale.usedPoints.toLocaleString()}P</ThemedText>
                   </View>
                 )}
-                
+
                 <View style={styles.detailRow}>
                   <ThemedText style={styles.detailLabel}>결제 방식</ThemedText>
                   <View style={styles.paymentBadge}>
-                    <Ionicons 
-                      name={selectedSale.paymentMethod === 'card' ? 'card' : 'cash'} 
-                      size={16} 
-                      color={selectedSale.paymentMethod === 'card' ? '#007AFF' : '#34C759'} 
+                    <Ionicons
+                      name={selectedSale.paymentMethod === 'card' ? 'card' : 'cash'}
+                      size={16}
+                      color={selectedSale.paymentMethod === 'card' ? '#007AFF' : '#34C759'}
                     />
-                    <ThemedText style={[styles.paymentBadgeText, 
-                      { color: selectedSale.paymentMethod === 'card' ? '#007AFF' : '#34C759' }]}>
+                    <ThemedText style={[styles.paymentBadgeText,
+                    { color: selectedSale.paymentMethod === 'card' ? '#007AFF' : '#34C759' }]}>
                       {selectedSale.paymentMethod === 'card' ? '카드' : '현금'}
                     </ThemedText>
                   </View>
                 </View>
-                
+
                 {selectedSale.customerName && (
                   <View style={styles.detailRow}>
                     <ThemedText style={styles.detailLabel}>고객명</ThemedText>
                     <ThemedText style={styles.detailValue}>{selectedSale.customerName}</ThemedText>
                   </View>
                 )}
-                
+
                 <View style={styles.detailRow}>
                   <ThemedText style={styles.detailLabel}>일시</ThemedText>
                   <ThemedText style={styles.detailValue}>{selectedSale.date} {selectedSale.time}</ThemedText>
                 </View>
-                
+
                 <View style={styles.detailActions}>
                   <TouchableOpacity
                     style={styles.detailEditButton}
@@ -1144,7 +1123,7 @@ export default function SalesScreen() {
                 <Ionicons name="close" size={24} color="#8E8E93" />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.searchContent}>
               <TextInput
                 style={styles.searchInput}
@@ -1153,7 +1132,7 @@ export default function SalesScreen() {
                 placeholder="이름 또는 전화번호로 검색"
                 autoFocus
               />
-              
+
               <ScrollView style={styles.customerList}>
                 {filteredCustomers.map((customer) => (
                   <TouchableOpacity
@@ -1176,8 +1155,6 @@ export default function SalesScreen() {
           </View>
         </View>
       </Modal>
-
-      {/* 서비스 선택 모달 제거됨 */}
     </SafeAreaView>
   );
 }
