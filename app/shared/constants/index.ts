@@ -39,4 +39,13 @@ export const APP_STATES = {
   ERROR: 'error',
 } as const;
 
+export const SERVICES = [
+  { id: '1', name: '커트', icon: 'cut', basePrice: 12000 },
+  { id: '2', name: '파마', icon: 'flower', basePrice: 50000 },
+  { id: '3', name: '염색', icon: 'color-palette', basePrice: 30000 },
+  { id: '4', name: '트리트먼트', icon: 'leaf', basePrice: 20000 },
+  { id: '5', name: '스타일링', icon: 'brush', basePrice: 30000 },
+  { id: '6', name: '두피케어', icon: 'medical', basePrice: 30000 },
+] as const;
+
 export const DEFAULT_TIMEOUT = 10000;

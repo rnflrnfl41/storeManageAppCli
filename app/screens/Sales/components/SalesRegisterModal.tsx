@@ -4,6 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
 import { styles } from '@shared/styles/Sales';
 import CustomerSearchModal, { CustomerSearchItem } from './CustomerSearchModal';
+import { SERVICES } from '@/app/shared/constants';
 
 export interface Coupon {
   id: string;
@@ -30,7 +31,6 @@ export interface CustomerBrief {
 interface Props {
   visible: boolean;
   editing?: boolean;
-  services: ServiceItem[];
   customers: CustomerBrief[];
   initialCustomer?: CustomerBrief | null;
   initialSelectedServices?: ServiceItem[];
@@ -54,7 +54,6 @@ interface Props {
 const SalesRegisterModal: React.FC<Props> = ({
   visible,
   editing,
-  services,
   customers,
   initialCustomer = null,
   initialSelectedServices = [],
@@ -173,7 +172,7 @@ const SalesRegisterModal: React.FC<Props> = ({
             <View style={styles.inputContainer}>
               <ThemedText style={styles.inputLabel}>서비스 선택</ThemedText>
               <View style={styles.servicesIconGrid}>
-                {services.map((service) => {
+                {SERVICES.map((service) => {
                   const isSelected = selectedServices.some((s) => s.id === service.id);
                   return (
                     <TouchableOpacity
