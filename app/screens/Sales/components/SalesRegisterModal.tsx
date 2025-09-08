@@ -32,7 +32,7 @@ interface Props {
   visible: boolean;
   editing?: boolean;
   customers: CustomerBrief[];
-  initialCustomer?: CustomerBrief | null;
+  initialCustomer?: CustomerBrief | null | 'guest';
   initialSelectedServices?: ServiceItem[];
   initialServiceAmounts?: { [key: string]: number };
   initialCoupon?: Coupon | null;
@@ -40,7 +40,7 @@ interface Props {
   initialPaymentMethod?: 'card' | 'cash';
   onClose: () => void;
   onSubmit: (payload: {
-    customer: CustomerBrief | null;
+    customer: CustomerBrief | null | 'guest';
     services: ServiceItem[];
     serviceAmounts: { [key: string]: number };
     coupon: Coupon | null;
@@ -64,7 +64,7 @@ const SalesRegisterModal: React.FC<Props> = ({
   onClose,
   onSubmit,
 }) => {
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerBrief | null>(initialCustomer);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerBrief | null | 'guest'>(initialCustomer);
   const [selectedServices, setSelectedServices] = useState<ServiceItem[]>(initialSelectedServices);
   const [serviceAmounts, setServiceAmounts] = useState<{ [key: string]: number }>(initialServiceAmounts);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(initialCoupon);
@@ -122,6 +122,12 @@ const SalesRegisterModal: React.FC<Props> = ({
     return Math.max(0, totalServiceAmount - discount);
   }, [selectedCoupon, usedPoints, totalServiceAmount]);
 
+  const handleClearCustomer = () => {
+    setSelectedCustomer(null);
+    setSelectedCoupon(null);
+    setUsedPoints(0);
+  };
+
   const handleSubmit = () => {
     onSubmit({
       customer: selectedCustomer,
@@ -151,7 +157,12 @@ const SalesRegisterModal: React.FC<Props> = ({
               <ThemedText style={styles.inputLabel}>고객 선택</ThemedText>
               <TouchableOpacity style={styles.customerSelectButton} onPress={() => setCustomerSearchVisible(true)}>
                 <View style={styles.customerSelectContent}>
-                  {selectedCustomer ? (
+                  {selectedCustomer === 'guest' ? (
+                    <View style={styles.guestCustomerDisplay}>
+                      <Ionicons name="person-outline" size={20} color="#6c757d" />
+                      <ThemedText style={styles.guestCustomerText}>일회성 고객</ThemedText>
+                    </View>
+                  ) : selectedCustomer ? (
                     <>
                       <View style={styles.customerInfo}>
                         <ThemedText style={styles.customerName}>{selectedCustomer.name}</ThemedText>
@@ -166,7 +177,13 @@ const SalesRegisterModal: React.FC<Props> = ({
                     <ThemedText style={styles.placeholderText}>고객을 선택하세요</ThemedText>
                   )}
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
+                {selectedCustomer ? (
+                  <TouchableOpacity style={styles.customerClearButton} onPress={handleClearCustomer}>
+                    <ThemedText style={styles.customerClearText}>취소</ThemedText>
+                  </TouchableOpacity>
+                ) : (
+                  <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
+                )}
               </TouchableOpacity>
             </View>
 
@@ -240,7 +257,7 @@ const SalesRegisterModal: React.FC<Props> = ({
               </View>
             )}
 
-            {selectedCustomer && (
+            {selectedCustomer && selectedCustomer !== 'guest' && (
               <View style={styles.inputContainer}>
                 <ThemedText style={styles.inputLabel}>할인 혜택</ThemedText>
 
@@ -336,6 +353,7 @@ const SalesRegisterModal: React.FC<Props> = ({
               visible={customerSearchVisible}
               customers={customers as unknown as CustomerSearchItem[]}
               onSelectCustomer={(c) => { setSelectedCustomer(c as unknown as CustomerBrief); setCustomerSearchVisible(false); }}
+              onSelectGuestCustomer={() => { setSelectedCustomer('guest'); setCustomerSearchVisible(false); }}
               onClose={() => setCustomerSearchVisible(false)}
             />
             </View>

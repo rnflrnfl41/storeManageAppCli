@@ -17,6 +17,7 @@ interface Props {
   visible: boolean;
   customers: CustomerSearchItem[];
   onSelectCustomer: (customer: CustomerSearchItem) => void;
+  onSelectGuestCustomer: () => void;
   onClose: () => void;
 }
 
@@ -24,6 +25,7 @@ const CustomerSearchModal: React.FC<Props> = ({
   visible,
   customers,
   onSelectCustomer,
+  onSelectGuestCustomer,
   onClose,
 }) => {
   const [searchText, setSearchText] = useState('');
@@ -73,6 +75,16 @@ const CustomerSearchModal: React.FC<Props> = ({
                 </TouchableOpacity>
               ))}
             </ScrollView>
+
+            <View style={styles.guestCustomerSection}>
+              <TouchableOpacity 
+                style={styles.guestCustomerButton}
+                onPress={onSelectGuestCustomer}
+              >
+                <Ionicons name="person-outline" size={20} color="#6c757d" />
+                <ThemedText style={styles.guestCustomerText}>일회성 고객</ThemedText>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
