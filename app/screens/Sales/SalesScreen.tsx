@@ -98,15 +98,6 @@ const mockCustomers: Customer[] = [
   }
 ];
 
-const services: Service[] = [
-  { id: '1', name: '커트', icon: 'cut', basePrice: 25000 },
-  { id: '2', name: '파마', icon: 'flower', basePrice: 120000 },
-  { id: '3', name: '염색', icon: 'color-palette', basePrice: 80000 },
-  { id: '4', name: '트리트먼트', icon: 'leaf', basePrice: 45000 },
-  { id: '5', name: '스타일링', icon: 'brush', basePrice: 35000 },
-  { id: '6', name: '두피케어', icon: 'medical', basePrice: 30000 }
-];
-
 const generateMockData = (): SalesData[] => {
   const mockData: SalesData[] = [];
   const today = new Date();
@@ -160,7 +151,7 @@ const generateMockData = (): SalesData[] => {
             { name: '신규고객 20% 할인', type: 'percent', value: 20 },
             { name: '생일 축하 15% 할인', type: 'percent', value: 15 },
             { name: '단골고객 10% 할인', type: 'percent', value: 10 },
-            { name: '5만원 할인쿠폰', type: 'fixed', value: 50000 }
+            { name: '1만원 할인쿠폰', type: 'fixed', value: 10000 }
           ];
           const coupon = coupons[Math.floor(Math.random() * coupons.length)];
           discountAmount = coupon.type === 'percent'
@@ -625,7 +616,6 @@ export default function SalesScreen() {
       <SalesRegisterModal
         visible={modalVisible}
         editing={!!editingId}
-        services={services}
         customers={mockCustomers}
         onClose={() => { setModalVisible(false); resetModal(); }}
         onSubmit={handleRegisterSubmit}
