@@ -142,8 +142,9 @@ const SalesRegisterModal: React.FC<Props> = ({
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
-          <View style={styles.modalContent}>
+        <View style={styles.modalScrollView}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{flexGrow: 1}}>
+            <View style={styles.modalContent}>
             <ThemedText style={styles.modalTitle}>{editing ? '매출 수정' : '매출 등록'}</ThemedText>
 
             <View style={styles.inputContainer}>
@@ -337,8 +338,9 @@ const SalesRegisterModal: React.FC<Props> = ({
               onSelectCustomer={(c) => { setSelectedCustomer(c as unknown as CustomerBrief); setCustomerSearchVisible(false); }}
               onClose={() => setCustomerSearchVisible(false)}
             />
-          </View>
-        </ScrollView>
+            </View>
+          </ScrollView>
+        </View>
       </View>
     </Modal>
   );
