@@ -195,11 +195,7 @@ export const styles = StyleSheet.create({
       alignItems: 'center',
     },
     modalContent: {
-      backgroundColor: '#ffffff',
-      borderRadius: 12,
       padding: 24,
-      width: '90%',
-      maxWidth: 400,
     },
     modalTitle: {
       fontSize: 20,
@@ -688,8 +684,11 @@ export const styles = StyleSheet.create({
       opacity: 0.5,
     },
     modalScrollView: {
-      maxHeight: '90%',
-      width: '100%',
+      maxHeight: '80%',
+      width: '90%',
+      maxWidth: 400,
+      backgroundColor: '#ffffff',
+      borderRadius: 12,
     },
     customerSelectButton: {
       borderWidth: 1,
