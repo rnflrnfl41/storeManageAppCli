@@ -3,30 +3,9 @@ import { Modal, View, StyleSheet, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
 import { styles } from '@shared/styles/Sales';
+import { SalesData, SalesDetailModalProps } from '@shared/types/salesTypes';
 
-export interface SalesDetailData {
-  id: string;
-  originalAmount: number;
-  discountAmount: number;
-  finalAmount: number;
-  description: string;
-  date: string;
-  time: string;
-  paymentMethod: 'card' | 'cash';
-  customerName?: string;
-  usedCoupon?: { name: string; discountAmount: number };
-  usedPoints?: number;
-}
-
-interface Props {
-  visible: boolean;
-  sale: SalesDetailData | null;
-  onClose: () => void;
-  onEdit: (sale: SalesDetailData) => void;
-  onDelete: (id: string) => void;
-}
-
-const SalesDetailModal: React.FC<Props> = ({ visible, sale, onClose, onEdit, onDelete }) => {
+const SalesDetailModal: React.FC<SalesDetailModalProps> = ({ visible, sale, onClose, onDelete }) => {
   return (
     <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
@@ -113,12 +92,8 @@ const SalesDetailModal: React.FC<Props> = ({ visible, sale, onClose, onEdit, onD
               </View>
 
               <View style={styles.detailActions}>
-                <TouchableOpacity style={styles.detailEditButton} onPress={() => onEdit(sale)}>
-                  <Ionicons name="create-outline" size={20} color="#007AFF" />
-                  <ThemedText style={styles.detailEditText}>수정</ThemedText>
-                </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.detailDeleteButton}
+                  style={[styles.detailDeleteButton, { flex: 1 }]}
                   onPress={() => sale && onDelete(sale.id)}
                 >
                   <Ionicons name="trash-outline" size={20} color="#FF3B30" />

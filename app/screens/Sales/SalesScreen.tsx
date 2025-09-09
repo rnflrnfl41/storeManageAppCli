@@ -18,85 +18,9 @@ import SalesDetailModal from './components/SalesDetailModal';
 import SalesRegisterModal from './components/SalesRegisterModal';
 import { showConfirm, showError } from '@utils/alertUtils';
 import { styles } from '@shared/styles/Sales';
-
-interface Customer {
-  id: string;
-  name: string;
-  phone: string;
-  points: number;
-  coupons: Coupon[];
-}
-
-interface Coupon {
-  id: string;
-  name: string;
-  discountType: 'percent' | 'fixed';
-  discountValue: number;
-}
-
-interface Service {
-  id: string;
-  name: string;
-  icon: string;
-  basePrice: number;
-}
-
-interface SalesData {
-  id: string;
-  originalAmount: number; // 원래 금액
-  discountAmount: number; // 할인 금액
-  finalAmount: number; // 최종 결제 금액
-  description: string;
-  date: string;
-  time: string;
-  paymentMethod: 'card' | 'cash';
-  customerName?: string;
-  usedCoupon?: {
-    name: string;
-    discountAmount: number;
-  };
-  usedPoints?: number;
-}
+import { Customer, Coupon, Service, SalesData } from '@shared/types/salesTypes';
 
 const screenWidth = Dimensions.get('window').width;
-
-const mockCustomers: Customer[] = [
-  {
-    id: '1',
-    name: '김민수',
-    phone: '010-1234-5678',
-    points: 5000,
-    coupons: [
-      { id: '1', name: '신규고객 20% 할인', discountType: 'percent', discountValue: 20 },
-      { id: '2', name: '5만원 할인쿠폰', discountType: 'fixed', discountValue: 50000 }
-    ]
-  },
-  {
-    id: '2',
-    name: '이영희',
-    phone: '010-2345-6789',
-    points: 12000,
-    coupons: [
-      { id: '3', name: '생일 축하 15% 할인', discountType: 'percent', discountValue: 15 }
-    ]
-  },
-  {
-    id: '3',
-    name: '박철수',
-    phone: '010-3456-7890',
-    points: 8500,
-    coupons: []
-  },
-  {
-    id: '4',
-    name: '최지영',
-    phone: '010-4567-8901',
-    points: 3200,
-    coupons: [
-      { id: '4', name: '단골고객 10% 할인', discountType: 'percent', discountValue: 10 }
-    ]
-  }
-];
 
 const generateMockData = (): SalesData[] => {
   const mockData: SalesData[] = [];
@@ -190,7 +114,7 @@ const generateMockData = (): SalesData[] => {
 export default function SalesScreen() {
   const [salesData, setSalesData] = useState<SalesData[]>(generateMockData());
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+
   // 상위는 모달 표시/편집 여부 등 최소 상태만 유지
   const [viewType, setViewType] = useState<'daily' | 'monthly'>('daily');
   
@@ -201,12 +125,10 @@ export default function SalesScreen() {
   const [showAllSales, setShowAllSales] = useState(false);
   const [tooltip, setTooltip] = useState<{ visible: boolean, x: number, y: number, data: any } | null>(null);
 
-  const resetModal = () => {
-    setEditingId(null);
-  };
+
 
   const handleRegisterSubmit = (payload: {
-    customer: Customer | null;
+    customer: Customer | null | 'guest';
     services: Service[];
     serviceAmounts: { [key: string]: number };
     coupon: Coupon | null;
@@ -218,7 +140,7 @@ export default function SalesScreen() {
     const now = new Date();
     const serviceNames = payload.services.map(s => s.name).join(', ');
     const newSales: SalesData = {
-      id: editingId ? editingId : Date.now().toString(),
+      id: Date.now().toString(),
       originalAmount: payload.totalAmount,
       discountAmount: Math.max(0, payload.totalAmount - payload.finalAmount),
       finalAmount: payload.finalAmount,
@@ -226,7 +148,7 @@ export default function SalesScreen() {
       date: now.toISOString().split('T')[0],
       time: now.toTimeString().split(' ')[0].slice(0, 5),
       paymentMethod: payload.paymentMethod,
-      customerName: payload.customer?.name,
+      customerName: payload.customer === 'guest' ? '일회성 고객' : payload.customer?.name,
       usedCoupon: payload.coupon ? {
         name: payload.coupon.name,
         discountAmount: payload.coupon.discountType === 'percent'
@@ -236,21 +158,11 @@ export default function SalesScreen() {
       usedPoints: payload.usedPoints > 0 ? payload.usedPoints : undefined,
     };
 
-    if (editingId) {
-      setSalesData(prev => prev.map(item => item.id === editingId ? newSales : item));
-    } else {
-      setSalesData(prev => [...prev, newSales]);
-    }
-
+    setSalesData(prev => [...prev, newSales]);
     setModalVisible(false);
-    resetModal();
   };
 
-  const editSales = (item: SalesData) => {
-    setEditingId(item.id);
-    setDetailModalVisible(false);
-    setModalVisible(true);
-  };
+
 
   const handleSalePress = (item: SalesData) => {
     setSelectedSale(item);
@@ -578,12 +490,6 @@ export default function SalesScreen() {
                     </View>
                     <View style={styles.salesActions}>
                       <TouchableOpacity
-                        style={styles.editButton}
-                        onPress={() => editSales(item)}
-                      >
-                        <Ionicons name="create-outline" size={20} color="#007AFF" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
                         style={styles.deleteButton}
                         onPress={() => deleteSales(item.id)}
                       >
@@ -615,9 +521,7 @@ export default function SalesScreen() {
 
       <SalesRegisterModal
         visible={modalVisible}
-        editing={!!editingId}
-        customers={mockCustomers}
-        onClose={() => { setModalVisible(false); resetModal(); }}
+        onClose={() => setModalVisible(false)}
         onSubmit={handleRegisterSubmit}
       />
 
@@ -625,7 +529,6 @@ export default function SalesScreen() {
         visible={detailModalVisible}
         sale={selectedSale}
         onClose={() => setDetailModalVisible(false)}
-        onEdit={editSales}
         onDelete={deleteSales}
       />
 
