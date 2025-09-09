@@ -27,7 +27,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
       const response = await axiosInstance.get('/customer/all/benefit');
       setCustomers(response.data || []);
     } catch (error) {
-      console.error('Failed to fetch customers:', error);
+      console.log('Failed to fetch customers:', error);
     }
   };
 
