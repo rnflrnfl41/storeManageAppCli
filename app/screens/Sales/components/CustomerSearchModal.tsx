@@ -3,32 +3,34 @@ import { Modal, View, StyleSheet, TextInput, ScrollView, TouchableOpacity } from
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
 import { styles } from '@shared/styles/Sales';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { Customer, CustomerSearchModalProps } from '@shared/types/salesTypes';
+import { axiosInstance } from '@services/apiClient';
 
-export interface CustomerSearchItem {
-  id: string;
-  name: string;
-  phone: string;
-  points: number;
-  coupons: Array<{ id: string; name: string; discountType: 'percent' | 'fixed'; discountValue: number }>;
-}
-
-interface Props {
-  visible: boolean;
-  customers: CustomerSearchItem[];
-  onSelectCustomer: (customer: CustomerSearchItem) => void;
-  onSelectGuestCustomer: () => void;
-  onClose: () => void;
-}
-
-const CustomerSearchModal: React.FC<Props> = ({
+const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
   visible,
-  customers,
   onSelectCustomer,
   onSelectGuestCustomer,
   onClose,
 }) => {
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchText, setSearchText] = useState('');
+  
+  useEffect(() => {
+    if (visible) {
+      fetchCustomers();
+    }
+  }, [visible]);
+
+  const fetchCustomers = async () => {
+    try {
+      const response = await axiosInstance.get('/customer/all/benefit');
+      setCustomers(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch customers:', error);
+    }
+  };
+
   const filtered = useMemo(() => {
     return customers.filter(c => c.name.includes(searchText) || c.phone.includes(searchText));
   }, [customers, searchText]);

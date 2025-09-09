@@ -3,86 +3,36 @@ import { Modal, View, StyleSheet, ScrollView, TouchableOpacity, TextInput } from
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
 import { styles } from '@shared/styles/Sales';
-import CustomerSearchModal, { CustomerSearchItem } from './CustomerSearchModal';
+import CustomerSearchModal from './CustomerSearchModal';
 import { SERVICES } from '@/app/shared/constants';
+import { Customer, Coupon, Service, SalesRegisterModalProps } from '@shared/types/salesTypes';
 
-export interface Coupon {
-  id: string;
-  name: string;
-  discountType: 'percent' | 'fixed';
-  discountValue: number;
-}
-
-export interface ServiceItem {
-  id: string;
-  name: string;
-  icon: string;
-  basePrice: number;
-}
-
-export interface CustomerBrief {
-  id: string;
-  name: string;
-  phone: string;
-  points: number;
-  coupons: Coupon[];
-}
-
-interface Props {
-  visible: boolean;
-  editing?: boolean;
-  customers: CustomerBrief[];
-  initialCustomer?: CustomerBrief | null | 'guest';
-  initialSelectedServices?: ServiceItem[];
-  initialServiceAmounts?: { [key: string]: number };
-  initialCoupon?: Coupon | null;
-  initialUsedPoints?: number;
-  initialPaymentMethod?: 'card' | 'cash';
-  onClose: () => void;
-  onSubmit: (payload: {
-    customer: CustomerBrief | null | 'guest';
-    services: ServiceItem[];
-    serviceAmounts: { [key: string]: number };
-    coupon: Coupon | null;
-    usedPoints: number;
-    paymentMethod: 'card' | 'cash';
-    totalAmount: number;
-    finalAmount: number;
-  }) => void;
-}
-
-const SalesRegisterModal: React.FC<Props> = ({
+const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
   visible,
-  editing,
-  customers,
-  initialCustomer = null,
-  initialSelectedServices = [],
-  initialServiceAmounts = {},
-  initialCoupon = null,
-  initialUsedPoints = 0,
-  initialPaymentMethod = 'card',
   onClose,
   onSubmit,
 }) => {
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerBrief | null | 'guest'>(initialCustomer);
-  const [selectedServices, setSelectedServices] = useState<ServiceItem[]>(initialSelectedServices);
-  const [serviceAmounts, setServiceAmounts] = useState<{ [key: string]: number }>(initialServiceAmounts);
-  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(initialCoupon);
-  const [usedPoints, setUsedPoints] = useState<number>(initialUsedPoints || 0);
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>(initialPaymentMethod || 'card');
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null | 'guest'>(null);
+  const [selectedServices, setSelectedServices] = useState<Service[]>([]);
+  const [serviceAmounts, setServiceAmounts] = useState<{ [key: string]: number }>({});
+  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
+  const [usedPoints, setUsedPoints] = useState<number>(0);
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>('card');
   const [customerSearchVisible, setCustomerSearchVisible] = useState(false);
 
   useEffect(() => {
-    if (!visible) return;
-    setSelectedCustomer(initialCustomer ?? null);
-    setSelectedServices(initialSelectedServices ?? []);
-    setServiceAmounts(initialServiceAmounts ?? {});
-    setSelectedCoupon(initialCoupon ?? null);
-    setUsedPoints(initialUsedPoints ?? 0);
-    setPaymentMethod(initialPaymentMethod ?? 'card');
+    if (!visible) {
+      // 모달이 닫힐 때 초기화
+      setSelectedCustomer(null);
+      setSelectedServices([]);
+      setServiceAmounts({});
+      setSelectedCoupon(null);
+      setUsedPoints(0);
+      setPaymentMethod('card');
+    }
   }, [visible]);
 
-  const toggleService = (service: ServiceItem) => {
+  const toggleService = (service: Service) => {
     setSelectedServices(prev => {
       const exists = prev.some(s => s.id === service.id);
       if (exists) {
@@ -151,7 +101,7 @@ const SalesRegisterModal: React.FC<Props> = ({
         <View style={styles.modalScrollView}>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{flexGrow: 1}}>
             <View style={styles.modalContent}>
-            <ThemedText style={styles.modalTitle}>{editing ? '매출 수정' : '매출 등록'}</ThemedText>
+            <ThemedText style={styles.modalTitle}>매출 등록</ThemedText>
 
             <View style={styles.inputContainer}>
               <ThemedText style={styles.inputLabel}>고객 선택</ThemedText>
@@ -346,13 +296,12 @@ const SalesRegisterModal: React.FC<Props> = ({
                 <ThemedText style={styles.cancelButtonText}>취소</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity style={styles.confirmButton} onPress={handleSubmit}>
-                <ThemedText style={styles.confirmButtonText}>{editing ? '수정' : '등록'}</ThemedText>
+                <ThemedText style={styles.confirmButtonText}>등록</ThemedText>
               </TouchableOpacity>
             </View>
             <CustomerSearchModal
               visible={customerSearchVisible}
-              customers={customers as unknown as CustomerSearchItem[]}
-              onSelectCustomer={(c) => { setSelectedCustomer(c as unknown as CustomerBrief); setCustomerSearchVisible(false); }}
+              onSelectCustomer={(c) => { setSelectedCustomer(c); setCustomerSearchVisible(false); }}
               onSelectGuestCustomer={() => { setSelectedCustomer('guest'); setCustomerSearchVisible(false); }}
               onClose={() => setCustomerSearchVisible(false)}
             />
