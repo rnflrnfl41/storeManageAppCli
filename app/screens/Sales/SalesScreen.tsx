@@ -206,7 +206,7 @@ export default function SalesScreen() {
   };
 
   const handleRegisterSubmit = (payload: {
-    customer: Customer | null;
+    customer: Customer | null | 'guest';
     services: Service[];
     serviceAmounts: { [key: string]: number };
     coupon: Coupon | null;
@@ -226,7 +226,7 @@ export default function SalesScreen() {
       date: now.toISOString().split('T')[0],
       time: now.toTimeString().split(' ')[0].slice(0, 5),
       paymentMethod: payload.paymentMethod,
-      customerName: payload.customer?.name,
+      customerName: payload.customer === 'guest' ? '일회성 고객' : payload.customer?.name,
       usedCoupon: payload.coupon ? {
         name: payload.coupon.name,
         discountAmount: payload.coupon.discountType === 'percent'
