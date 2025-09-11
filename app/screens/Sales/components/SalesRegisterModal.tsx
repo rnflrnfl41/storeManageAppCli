@@ -64,9 +64,9 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
   const finalAmount = useMemo(() => {
     let discount = 0;
     if (selectedCoupon) {
-      discount += selectedCoupon.discountType === 'percent'
-        ? Math.floor(totalServiceAmount * (selectedCoupon.discountValue / 100))
-        : selectedCoupon.discountValue;
+      discount += selectedCoupon.type === 'percent'
+        ? Math.floor(totalServiceAmount * (selectedCoupon.amount / 100))
+        : selectedCoupon.amount;
     }
     discount += usedPoints;
     return Math.max(0, totalServiceAmount - discount);
@@ -222,9 +222,9 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
                       >
                         <ThemedText style={styles.couponName}>{coupon.name}</ThemedText>
                         <ThemedText style={styles.couponValue}>
-                          {coupon.discountType === 'percent'
-                            ? `${coupon.discountValue}% 할인`
-                            : `${coupon.discountValue.toLocaleString()}원 할인`}
+                          {coupon.type === 'percent'
+                            ? `${coupon.amount}% 할인`
+                            : `${coupon.amount.toLocaleString()}원 할인`}
                         </ThemedText>
                       </TouchableOpacity>
                     ))}
