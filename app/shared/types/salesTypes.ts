@@ -1,8 +1,8 @@
 export interface Coupon {
   id: string;
   name: string;
-  discountType: 'percent' | 'fixed';
-  discountValue: number;
+  type: 'percent' | 'fixed';
+  amount: number;
 }
 
 export interface Customer {
