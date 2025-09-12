@@ -151,9 +151,9 @@ export default function SalesScreen() {
       customerName: payload.customer === 'guest' ? '일회성 고객' : payload.customer?.name,
       usedCoupon: payload.coupon ? {
         name: payload.coupon.name,
-        discountAmount: payload.coupon.discountType === 'percent'
-          ? Math.floor(payload.totalAmount * (payload.coupon.discountValue / 100))
-          : payload.coupon.discountValue
+        discountAmount: payload.coupon.type === 'percent'
+          ? Math.floor(payload.totalAmount * (payload.coupon.amount / 100))
+          : payload.coupon.amount
       } : undefined,
       usedPoints: payload.usedPoints > 0 ? payload.usedPoints : undefined,
     };
