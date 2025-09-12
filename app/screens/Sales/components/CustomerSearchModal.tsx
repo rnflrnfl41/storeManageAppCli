@@ -15,6 +15,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
 }) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchText, setSearchText] = useState('');
+  const [loading, setLoading] = useState(false);
   
   useEffect(() => {
     if (visible) {
@@ -24,10 +25,13 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
 
   const fetchCustomers = async () => {
     try {
+      setLoading(true);
       const response = await axiosInstance.get('/customer/all/benefit');
       setCustomers(response.data || []);
     } catch (error) {
       console.log('Failed to fetch customers:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,22 +64,28 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
             />
 
             <ScrollView style={styles.customerList} showsVerticalScrollIndicator={false}>
-              {filtered.map((customer) => (
-                <TouchableOpacity
-                  key={customer.id}
-                  style={styles.customerItem}
-                  onPress={() => onSelectCustomer(customer)}
-                >
-                  <View style={styles.customerItemInfo}>
-                    <ThemedText style={styles.customerItemName}>{customer.name}</ThemedText>
-                    <ThemedText style={styles.customerItemPhone}>{customer.phone}</ThemedText>
-                  </View>
-                  <View style={styles.customerItemMeta}>
-                    <ThemedText style={styles.customerItemPoints}>{customer.points.toLocaleString()}P</ThemedText>
-                    <ThemedText style={styles.customerItemCoupons}>쿠폰 {customer.coupons.length}개</ThemedText>
-                  </View>
-                </TouchableOpacity>
-              ))}
+              {loading ? (
+                <View style={{ padding: 20, alignItems: 'center' }}>
+                  <ThemedText>고객 정보를 불러오는 중...</ThemedText>
+                </View>
+              ) : (
+                filtered.map((customer) => (
+                  <TouchableOpacity
+                    key={customer.id}
+                    style={styles.customerItem}
+                    onPress={() => onSelectCustomer(customer)}
+                  >
+                    <View style={styles.customerItemInfo}>
+                      <ThemedText style={styles.customerItemName}>{customer.name}</ThemedText>
+                      <ThemedText style={styles.customerItemPhone}>{customer.phone}</ThemedText>
+                    </View>
+                    <View style={styles.customerItemMeta}>
+                      <ThemedText style={styles.customerItemPoints}>{customer.points.toLocaleString()}P</ThemedText>
+                      <ThemedText style={styles.customerItemCoupons}>쿠폰 {customer.coupons.length}개</ThemedText>
+                    </View>
+                  </TouchableOpacity>
+                ))
+              )}
             </ScrollView>
 
             <View style={styles.guestCustomerSection}>
