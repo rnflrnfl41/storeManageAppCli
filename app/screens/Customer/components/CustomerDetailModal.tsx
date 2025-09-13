@@ -28,7 +28,7 @@ export default function CustomerDetailModal({ visible, customer, onClose }: Cust
 
     // 판매 이력 조회
     try {
-      const salesResponse = await axiosInstance.get<ServiceHistoryDto[]>(`/sales/${customer.id}`);
+      const salesResponse = await axiosInstance.get<ServiceHistoryDto[]>(`/sales/${customer.id}/history`);
       const salesHistory = salesResponse.data;
       
       serviceHistory = salesHistory.map(dto => ({
