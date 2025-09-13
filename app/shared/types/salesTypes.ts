@@ -20,6 +20,24 @@ export interface Service {
   basePrice: number;
 }
 
+// 실제 저장용 Sales 타입
+export interface Sales {
+  memo: string;
+  visit_date: string;
+  customer_id: number;
+  total_service_amount: number;
+  discount_amount: number;
+  final_service_amount: number;
+  service: {
+    service_name: string;
+    price: number;
+  }[];
+  paymentMethod: string;
+  usedPoint: number;
+  usedCouponId: string;
+}
+
+// View용 Mock 데이터 타입 (기존 SalesData)
 export interface SalesData {
   id: string;
   originalAmount: number;
@@ -50,6 +68,7 @@ export interface SalesRegisterModalProps {
     paymentMethod: 'card' | 'cash';
     totalAmount: number;
     finalAmount: number;
+    visitDate: string;
   }) => void;
 }
 
