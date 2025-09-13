@@ -4,6 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
 import { styles } from '@shared/styles/Sales';
 import CustomerSearchModal from './CustomerSearchModal';
+import CalendarModal from '@components/CalendarModal';
 import { SERVICES } from '@/app/shared/constants';
 import { Customer, Coupon, Service, SalesRegisterModalProps } from '@shared/types/salesTypes';
 
@@ -17,8 +18,12 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
   const [serviceAmounts, setServiceAmounts] = useState<{ [key: string]: number }>({});
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const [usedPoints, setUsedPoints] = useState<number>(0);
+  const [usedPointsText, setUsedPointsText] = useState<string>(''); // 포인트 입력 텍스트 상태
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>('card');
   const [customerSearchVisible, setCustomerSearchVisible] = useState(false);
+  const [visitDate, setVisitDate] = useState<string>(new Date().toISOString().split('T')[0]); // 기본값: 오늘 날짜
+  const [calendarVisible, setCalendarVisible] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   useEffect(() => {
     if (!visible) {
@@ -28,7 +33,11 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
       setServiceAmounts({});
       setSelectedCoupon(null);
       setUsedPoints(0);
+      setUsedPointsText('');
       setPaymentMethod('card');
+      setVisitDate(new Date().toISOString().split('T')[0]); // 오늘 날짜로 초기화
+      setCalendarVisible(false);
+      setValidationErrors([]);
     }
   }, [visible]);
 
@@ -47,6 +56,11 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
       setServiceAmounts(prevAmt => ({ ...prevAmt, [service.id]: service.basePrice }));
       return [...prev, service];
     });
+    
+    // 서비스 선택 시 validation 에러 제거
+    if (validationErrors.includes('서비스를 하나 이상 선택해주세요')) {
+      setValidationErrors(prev => prev.filter(error => error !== '서비스를 하나 이상 선택해주세요'));
+    }
   };
 
   const adjustServiceAmount = (serviceId: string, diff: number) => {
@@ -76,10 +90,45 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
     setSelectedCustomer(null);
     setSelectedCoupon(null);
     setUsedPoints(0);
+    setUsedPointsText('');
   };
 
-  const handleSubmit = () => {
-    onSubmit({
+  const validateForm = (): boolean => {
+    const errors: string[] = [];
+
+    // 고객 선택 검증
+    if (!selectedCustomer) {
+      errors.push('고객을 선택해주세요');
+    }
+
+    // 서비스 선택 검증
+    if (selectedServices.length === 0) {
+      errors.push('서비스를 하나 이상 선택해주세요');
+    }
+
+    // 날짜 검증
+    if (!visitDate || visitDate.trim() === '') {
+      errors.push('방문 날짜를 선택해주세요');
+    }
+
+    // 거래 방식은 기본값이 'card'이므로 항상 있음
+    // 하지만 명시적으로 검증
+    if (!paymentMethod) {
+      errors.push('거래 방식을 선택해주세요');
+    }
+
+    setValidationErrors(errors);
+    return errors.length === 0;
+  };
+
+  const handleSubmit = async () => {
+    // 폼 검증
+    if (!validateForm()) {
+      return; // 검증 실패 시 등록 중단
+    }
+
+    // 검증 성공 시 등록 진행
+    await onSubmit({
       customer: selectedCustomer,
       services: selectedServices,
       serviceAmounts,
@@ -88,6 +137,7 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
       paymentMethod,
       totalAmount: totalServiceAmount,
       finalAmount,
+      visitDate,
     });
   };
   return (
@@ -129,11 +179,24 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
                 </View>
                 {selectedCustomer ? (
                   <TouchableOpacity style={styles.customerClearButton} onPress={handleClearCustomer}>
-                    <ThemedText style={styles.customerClearText}>취소</ThemedText>
+                    <View style={styles.customerClearIcon}>
+                      <Ionicons name="close" size={14} color="#ffffff" />
+                    </View>
                   </TouchableOpacity>
                 ) : (
                   <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
                 )}
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputContainer}>
+              <ThemedText style={styles.inputLabel}>방문 날짜</ThemedText>
+              <TouchableOpacity style={styles.customerSelectButton} onPress={() => setCalendarVisible(true)}>
+                <View style={styles.customerSelectContent}>
+                  <Ionicons name="calendar-outline" size={20} color="#4A90E2" />
+                  <ThemedText style={[styles.customerName, { marginLeft: 12, fontWeight: 'bold' }]}>{visitDate}</ThemedText>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
               </TouchableOpacity>
             </View>
 
@@ -165,7 +228,6 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
 
             {selectedServices.length > 0 && (
               <View style={styles.inputContainer}>
-                <ThemedText style={styles.inputLabel}>금액 조절</ThemedText>
                 {selectedServices.map((service) => (
                   <View key={service.id} style={styles.serviceAmountCard}>
                     <View style={styles.serviceAmountHeader}>
@@ -235,17 +297,66 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
                   <ThemedText style={styles.sectionSubtitle}>
                     포인트 사용 (보유: {selectedCustomer.points.toLocaleString()}P)
                   </ThemedText>
+                  {usedPoints > selectedCustomer.points && (
+                    <ThemedText style={styles.pointsWarningText}>
+                      보유 포인트를 초과할 수 없습니다
+                    </ThemedText>
+                  )}
                   <View style={styles.pointsInputContainer}>
-                    <TextInput
-                      style={styles.pointsInput}
-                      value={usedPoints.toString()}
-                      onChangeText={(text) => setUsedPoints(parseInt(text) || 0)}
-                      placeholder="사용할 포인트"
-                      keyboardType="numeric"
-                    />
+                    <View style={styles.pointsInputWrapper}>
+                      <TextInput
+                        style={[
+                          styles.pointsInput,
+                          usedPoints > selectedCustomer.points && styles.pointsInputError
+                        ]}
+                        value={usedPointsText}
+                        onChangeText={(text) => {
+                          // 숫자만 입력 허용
+                          const numericText = text.replace(/[^0-9]/g, '');
+                          setUsedPointsText(numericText);
+                          
+                          const numValue = parseInt(numericText) || 0;
+                          // 보유 포인트를 초과하지 않도록 제한
+                          const maxPoints = selectedCustomer.points;
+                          const limitedValue = Math.min(numValue, maxPoints);
+                          
+                          setUsedPoints(limitedValue);
+                          
+                          // 제한된 값과 입력값이 다르면 텍스트도 업데이트
+                          if (limitedValue !== numValue) {
+                            setUsedPointsText(limitedValue.toString());
+                          }
+                        }}
+                        onBlur={() => {
+                          // 포커스가 벗어날 때 빈 문자열이면 0으로 설정
+                          if (usedPointsText === '') {
+                            setUsedPoints(0);
+                          }
+                        }}
+                        placeholder="사용할 포인트"
+                        keyboardType="numeric"
+                      />
+                      {usedPointsText !== '' && (
+                        <TouchableOpacity
+                          style={styles.pointsClearButton}
+                          onPress={() => {
+                            setUsedPointsText('');
+                            setUsedPoints(0);
+                          }}
+                        >
+                          <View style={styles.pointsClearIcon}>
+                            <Ionicons name="close" size={14} color="#ffffff" />
+                          </View>
+                        </TouchableOpacity>
+                      )}
+                    </View>
                     <TouchableOpacity
                       style={styles.maxPointsButton}
-                      onPress={() => setUsedPoints(Math.min(selectedCustomer.points, totalServiceAmount))}
+                      onPress={() => {
+                        const maxPoints = Math.min(selectedCustomer.points, totalServiceAmount);
+                        setUsedPoints(maxPoints);
+                        setUsedPointsText(maxPoints.toString());
+                      }}
                     >
                       <ThemedText style={styles.maxPointsText}>전체</ThemedText>
                     </TouchableOpacity>
@@ -291,6 +402,17 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
               </View>
             )}
 
+            {/* Validation 에러 메시지 */}
+            {validationErrors.length > 0 && (
+              <View style={styles.validationErrorContainer}>
+                {validationErrors.map((error, index) => (
+                  <ThemedText key={index} style={styles.validationErrorText}>
+                    • {error}
+                  </ThemedText>
+                ))}
+              </View>
+            )}
+
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
                 <ThemedText style={styles.cancelButtonText}>취소</ThemedText>
@@ -301,9 +423,37 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
             </View>
             <CustomerSearchModal
               visible={customerSearchVisible}
-              onSelectCustomer={(c) => { setSelectedCustomer(c); setCustomerSearchVisible(false); }}
-              onSelectGuestCustomer={() => { setSelectedCustomer('guest'); setCustomerSearchVisible(false); }}
+              onSelectCustomer={(c) => { 
+                setSelectedCustomer(c); 
+                setCustomerSearchVisible(false);
+                // 고객 선택 시 validation 에러 제거
+                if (validationErrors.includes('고객을 선택해주세요')) {
+                  setValidationErrors(prev => prev.filter(error => error !== '고객을 선택해주세요'));
+                }
+              }}
+              onSelectGuestCustomer={() => { 
+                setSelectedCustomer('guest'); 
+                setCustomerSearchVisible(false);
+                // 고객 선택 시 validation 에러 제거
+                if (validationErrors.includes('고객을 선택해주세요')) {
+                  setValidationErrors(prev => prev.filter(error => error !== '고객을 선택해주세요'));
+                }
+              }}
               onClose={() => setCustomerSearchVisible(false)}
+            />
+            <CalendarModal
+              visible={calendarVisible}
+              currentDate={visitDate}
+              onClose={() => setCalendarVisible(false)}
+              onSelect={(date) => {
+                setVisitDate(date);
+                setCalendarVisible(false);
+                // 날짜 선택 시 validation 에러 제거
+                if (validationErrors.includes('방문 날짜를 선택해주세요')) {
+                  setValidationErrors(prev => prev.filter(error => error !== '방문 날짜를 선택해주세요'));
+                }
+              }}
+              title="방문 날짜 선택"
             />
             </View>
           </ScrollView>

@@ -840,14 +840,64 @@ export const styles = StyleSheet.create({
       alignItems: 'center',
       gap: 8,
     },
-    pointsInput: {
+    pointsInputWrapper: {
       flex: 1,
+      position: 'relative',
+    },
+    pointsInput: {
       borderWidth: 1,
       borderColor: '#ced4da',
       borderRadius: 8,
       padding: 12,
+      paddingRight: 40, // X 버튼을 위한 공간
       fontSize: 16,
       backgroundColor: '#ffffff',
+    },
+    pointsInputError: {
+      borderColor: '#dc3545',
+      backgroundColor: '#fff5f5',
+    },
+    pointsWarningText: {
+      color: '#dc3545',
+      fontSize: 12,
+      marginTop: 4,
+      marginBottom: 8,
+    },
+    pointsClearButton: {
+      position: 'absolute',
+      right: 8,
+      top: '50%',
+      transform: [{ translateY: -12 }], // 아이콘을 수직 중앙에 위치
+      padding: 2,
+    },
+    pointsClearIcon: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: '#8E8E93',
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.2,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    validationErrorContainer: {
+      backgroundColor: '#fff5f5',
+      borderWidth: 1,
+      borderColor: '#fecaca',
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 16,
+    },
+    validationErrorText: {
+      color: '#dc2626',
+      fontSize: 14,
+      marginBottom: 4,
     },
     maxPointsButton: {
       backgroundColor: '#FFD700',
@@ -939,20 +989,24 @@ export const styles = StyleSheet.create({
       gap: 8,
     },
     customerClearButton: {
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 6,
-      backgroundColor: '#f8f9fa',
-      borderWidth: 1,
-      borderColor: '#e9ecef',
-      justifyContent: 'center',
-      alignItems: 'center',
+      padding: 2,
       marginLeft: 8,
     },
-    customerClearText: {
-      fontSize: 12,
-      color: '#6c757d',
-      fontWeight: '500',
+    customerClearIcon: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: '#8E8E93',
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.2,
+      shadowRadius: 2,
+      elevation: 2,
     },
     searchHeader: {
       flexDirection: 'row',

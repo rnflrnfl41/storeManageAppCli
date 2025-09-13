@@ -17,8 +17,10 @@ import { LineChart } from 'react-native-chart-kit';
 import SalesDetailModal from './components/SalesDetailModal';
 import SalesRegisterModal from './components/SalesRegisterModal';
 import { showConfirm, showError } from '@utils/alertUtils';
+import { formatDate } from '@utils/index'
 import { styles } from '@shared/styles/Sales';
-import { Customer, Coupon, Service, SalesData } from '@shared/types/salesTypes';
+import { Customer, Coupon, Service, SalesData, Sales } from '@shared/types/salesTypes';
+import { axiosInstance } from '@services/apiClient';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -66,7 +68,7 @@ const generateMockData = (): SalesData[] => {
       let discountAmount = 0;
       let usedCoupon = undefined;
       let usedPoints = undefined;
-
+ 
       if (hasDiscount) {
         const discountType = Math.random();
         if (discountType > 0.7) {
@@ -125,9 +127,10 @@ export default function SalesScreen() {
   const [showAllSales, setShowAllSales] = useState(false);
   const [tooltip, setTooltip] = useState<{ visible: boolean, x: number, y: number, data: any } | null>(null);
 
+  // createdAt에서 날짜 부분만 추출하는 헬퍼 함수
+  const getDateFromCreatedAt = (createdAt: string) => createdAt.split(' ')[0];
 
-
-  const handleRegisterSubmit = (payload: {
+  const handleRegisterSubmit = async (payload: {
     customer: Customer | null | 'guest';
     services: Service[];
     serviceAmounts: { [key: string]: number };
@@ -136,30 +139,44 @@ export default function SalesScreen() {
     paymentMethod: 'card' | 'cash';
     totalAmount: number;
     finalAmount: number;
+    visitDate: string;
   }) => {
-    const now = new Date();
-    const serviceNames = payload.services.map(s => s.name).join(', ');
-    const newSales: SalesData = {
-      id: Date.now().toString(),
-      originalAmount: payload.totalAmount,
+    // 실제 저장용 Sales 데이터 생성
+    const salesData: Sales = {
+      memo: payload.services.map(s => s.name).join(', '), // 서비스 이름들을 메모로 사용
+      visitDate: payload.visitDate, // 선택된 날짜 사용
+      customerId: payload.customer === 'guest' ? 0 : parseInt(payload.customer?.id || '0'),
+      totalServiceAmount: payload.totalAmount,
       discountAmount: Math.max(0, payload.totalAmount - payload.finalAmount),
-      finalAmount: payload.finalAmount,
-      description: serviceNames,
-      date: now.toISOString().split('T')[0],
-      time: now.toTimeString().split(' ')[0].slice(0, 5),
+      finalServiceAmount: payload.finalAmount,
+      serviceList: payload.services.map(service => ({
+        name: service.name,
+        price: payload.serviceAmounts[service.id] || service.basePrice
+      })),
       paymentMethod: payload.paymentMethod,
-      customerName: payload.customer === 'guest' ? '일회성 고객' : payload.customer?.name,
-      usedCoupon: payload.coupon ? {
-        name: payload.coupon.name,
-        discountAmount: payload.coupon.type === 'percent'
-          ? Math.floor(payload.totalAmount * (payload.coupon.amount / 100))
-          : payload.coupon.amount
-      } : undefined,
-      usedPoints: payload.usedPoints > 0 ? payload.usedPoints : undefined,
+      usedPoint: payload.usedPoints,
+      usedCouponId: payload.coupon?.id || ''
     };
 
-    setSalesData(prev => [...prev, newSales]);
-    setModalVisible(false);
+    // 실제 저장용 데이터 로그
+    console.log('실제 저장용 Sales 데이터:', salesData);
+
+    // API 호출로 salesData를 서버에 저장
+    try {
+      const response = await axiosInstance.post('/sales/registration', salesData);
+      console.log('매출 등록 성공:', response.data);
+      
+      // 성공 시 모달 닫기
+      setModalVisible(false);
+    } catch (error) {
+      console.error('매출 등록 실패:', error);
+      // 에러는 apiClient의 인터셉터에서 자동으로 처리됨
+      throw error; // 에러를 다시 throw하여 모달이 닫히지 않도록 함
+    }
+
+    // View용 Mock 데이터는 기존 로직 유지
+    //setSalesData(prev => [...prev, newSales]);
+    //setModalVisible(false);
   };
 
 
