@@ -17,8 +17,9 @@ import { LineChart } from 'react-native-chart-kit';
 import SalesDetailModal from './components/SalesDetailModal';
 import SalesRegisterModal from './components/SalesRegisterModal';
 import { showConfirm, showError } from '@utils/alertUtils';
+import { formatDate } from '@utils/index'
 import { styles } from '@shared/styles/Sales';
-import { Customer, Coupon, Service, SalesData } from '@shared/types/salesTypes';
+import { Customer, Coupon, Service, SalesData, Sales } from '@shared/types/salesTypes';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -66,7 +67,7 @@ const generateMockData = (): SalesData[] => {
       let discountAmount = 0;
       let usedCoupon = undefined;
       let usedPoints = undefined;
-
+ 
       if (hasDiscount) {
         const discountType = Math.random();
         if (discountType > 0.7) {
@@ -125,7 +126,8 @@ export default function SalesScreen() {
   const [showAllSales, setShowAllSales] = useState(false);
   const [tooltip, setTooltip] = useState<{ visible: boolean, x: number, y: number, data: any } | null>(null);
 
-
+  // createdAt에서 날짜 부분만 추출하는 헬퍼 함수
+  const getDateFromCreatedAt = (createdAt: string) => createdAt.split(' ')[0];
 
   const handleRegisterSubmit = (payload: {
     customer: Customer | null | 'guest';
@@ -136,30 +138,34 @@ export default function SalesScreen() {
     paymentMethod: 'card' | 'cash';
     totalAmount: number;
     finalAmount: number;
+    visitDate: string;
   }) => {
-    const now = new Date();
-    const serviceNames = payload.services.map(s => s.name).join(', ');
-    const newSales: SalesData = {
-      id: Date.now().toString(),
-      originalAmount: payload.totalAmount,
-      discountAmount: Math.max(0, payload.totalAmount - payload.finalAmount),
-      finalAmount: payload.finalAmount,
-      description: serviceNames,
-      date: now.toISOString().split('T')[0],
-      time: now.toTimeString().split(' ')[0].slice(0, 5),
+    // 실제 저장용 Sales 데이터 생성
+    const salesData: Sales = {
+      memo: payload.services.map(s => s.name).join(', '), // 서비스 이름들을 메모로 사용
+      visit_date: payload.visitDate, // 선택된 날짜 사용
+      customer_id: payload.customer === 'guest' ? 0 : parseInt(payload.customer?.id || '0'),
+      total_service_amount: payload.totalAmount,
+      discount_amount: Math.max(0, payload.totalAmount - payload.finalAmount),
+      final_service_amount: payload.finalAmount,
+      service: payload.services.map(service => ({
+        service_name: service.name,
+        price: payload.serviceAmounts[service.id] || service.basePrice
+      })),
       paymentMethod: payload.paymentMethod,
-      customerName: payload.customer === 'guest' ? '일회성 고객' : payload.customer?.name,
-      usedCoupon: payload.coupon ? {
-        name: payload.coupon.name,
-        discountAmount: payload.coupon.type === 'percent'
-          ? Math.floor(payload.totalAmount * (payload.coupon.amount / 100))
-          : payload.coupon.amount
-      } : undefined,
-      usedPoints: payload.usedPoints > 0 ? payload.usedPoints : undefined,
+      usedPoint: payload.usedPoints,
+      usedCouponId: payload.coupon?.id || ''
     };
 
-    setSalesData(prev => [...prev, newSales]);
-    setModalVisible(false);
+    // 실제 저장용 데이터 로그
+    console.log('실제 저장용 Sales 데이터:', salesData);
+
+    // TODO: 실제 API 호출로 salesData를 서버에 저장
+    // await saveSalesData(salesData);
+
+    // View용 Mock 데이터는 기존 로직 유지
+    //setSalesData(prev => [...prev, newSales]);
+    //setModalVisible(false);
   };
 
 
