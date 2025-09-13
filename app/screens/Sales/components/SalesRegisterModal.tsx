@@ -121,14 +121,14 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
     return errors.length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // 폼 검증
     if (!validateForm()) {
       return; // 검증 실패 시 등록 중단
     }
 
     // 검증 성공 시 등록 진행
-    onSubmit({
+    await onSubmit({
       customer: selectedCustomer,
       services: selectedServices,
       serviceAmounts,

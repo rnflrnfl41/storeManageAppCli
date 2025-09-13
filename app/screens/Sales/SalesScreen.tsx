@@ -20,6 +20,7 @@ import { showConfirm, showError } from '@utils/alertUtils';
 import { formatDate } from '@utils/index'
 import { styles } from '@shared/styles/Sales';
 import { Customer, Coupon, Service, SalesData, Sales } from '@shared/types/salesTypes';
+import { axiosInstance } from '@services/apiClient';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -129,7 +130,7 @@ export default function SalesScreen() {
   // createdAt에서 날짜 부분만 추출하는 헬퍼 함수
   const getDateFromCreatedAt = (createdAt: string) => createdAt.split(' ')[0];
 
-  const handleRegisterSubmit = (payload: {
+  const handleRegisterSubmit = async (payload: {
     customer: Customer | null | 'guest';
     services: Service[];
     serviceAmounts: { [key: string]: number };
@@ -143,13 +144,13 @@ export default function SalesScreen() {
     // 실제 저장용 Sales 데이터 생성
     const salesData: Sales = {
       memo: payload.services.map(s => s.name).join(', '), // 서비스 이름들을 메모로 사용
-      visit_date: payload.visitDate, // 선택된 날짜 사용
-      customer_id: payload.customer === 'guest' ? 0 : parseInt(payload.customer?.id || '0'),
-      total_service_amount: payload.totalAmount,
-      discount_amount: Math.max(0, payload.totalAmount - payload.finalAmount),
-      final_service_amount: payload.finalAmount,
-      service: payload.services.map(service => ({
-        service_name: service.name,
+      visitDate: payload.visitDate, // 선택된 날짜 사용
+      customerId: payload.customer === 'guest' ? 0 : parseInt(payload.customer?.id || '0'),
+      totalServiceAmount: payload.totalAmount,
+      discountAmount: Math.max(0, payload.totalAmount - payload.finalAmount),
+      finalServiceAmount: payload.finalAmount,
+      serviceList: payload.services.map(service => ({
+        name: service.name,
         price: payload.serviceAmounts[service.id] || service.basePrice
       })),
       paymentMethod: payload.paymentMethod,
@@ -160,8 +161,18 @@ export default function SalesScreen() {
     // 실제 저장용 데이터 로그
     console.log('실제 저장용 Sales 데이터:', salesData);
 
-    // TODO: 실제 API 호출로 salesData를 서버에 저장
-    // await saveSalesData(salesData);
+    // API 호출로 salesData를 서버에 저장
+    try {
+      const response = await axiosInstance.post('/sales/registration', salesData);
+      console.log('매출 등록 성공:', response.data);
+      
+      // 성공 시 모달 닫기
+      setModalVisible(false);
+    } catch (error) {
+      console.error('매출 등록 실패:', error);
+      // 에러는 apiClient의 인터셉터에서 자동으로 처리됨
+      throw error; // 에러를 다시 throw하여 모달이 닫히지 않도록 함
+    }
 
     // View용 Mock 데이터는 기존 로직 유지
     //setSalesData(prev => [...prev, newSales]);

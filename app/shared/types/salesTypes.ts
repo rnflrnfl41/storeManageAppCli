@@ -23,13 +23,13 @@ export interface Service {
 // 실제 저장용 Sales 타입
 export interface Sales {
   memo: string;
-  visit_date: string;
-  customer_id: number;
-  total_service_amount: number;
-  discount_amount: number;
-  final_service_amount: number;
-  service: {
-    service_name: string;
+  visitDate: string;
+  customerId: number;
+  totalServiceAmount: number;
+  discountAmount: number;
+  finalServiceAmount: number;
+  serviceList: {
+    name: string;
     price: number;
   }[];
   paymentMethod: string;
@@ -69,7 +69,7 @@ export interface SalesRegisterModalProps {
     totalAmount: number;
     finalAmount: number;
     visitDate: string;
-  }) => void;
+  }) => Promise<void>;
 }
 
 export interface SalesDetailModalProps {
