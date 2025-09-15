@@ -4,15 +4,10 @@ import { colors, shadows } from './common';
 // GlobalSpinner 스타일
 export const globalSpinnerStyles = StyleSheet.create({
   overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 999999,
   },
   spinnerContainer: {
     width: 120,
