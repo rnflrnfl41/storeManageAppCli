@@ -169,8 +169,7 @@ export default function SalesScreen() {
       // 성공 시 모달 닫기
       setModalVisible(false);
     } catch (error) {
-      console.error('매출 등록 실패:', error);
-      // 에러는 apiClient의 인터셉터에서 자동으로 처리됨
+      console.log('매출 등록 실패:', error);
       throw error; // 에러를 다시 throw하여 모달이 닫히지 않도록 함
     }
 
