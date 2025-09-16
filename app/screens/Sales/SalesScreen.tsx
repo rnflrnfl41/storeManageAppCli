@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,6 +8,7 @@ import {
   Alert,
   Dimensions,
   Modal,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -21,111 +22,35 @@ import { formatDate } from '@utils/index'
 import { styles } from '@shared/styles/Sales';
 import { Customer, Coupon, Service, SalesData, Sales } from '@shared/types/salesTypes';
 import { axiosInstance } from '@services/apiClient';
+import { useSalesData } from '@hooks/useSalesData';
+import { salesService } from '@services/salesService';
 
 const screenWidth = Dimensions.get('window').width;
 
-const generateMockData = (): SalesData[] => {
-  const mockData: SalesData[] = [];
-  const today = new Date();
-
-  // 최근 2주간의 가라 데이터 생성
-  for (let i = 0; i < 14; i++) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-
-    // 하루에 3-8개의 매출 생성
-    const salesCount = Math.floor(Math.random() * 6) + 3;
-
-    for (let j = 0; j < salesCount; j++) {
-      const hour = Math.floor(Math.random() * 12) + 9; // 9시-20시
-      const minute = Math.floor(Math.random() * 60);
-
-      const services = [
-        '커트',
-        '파마',
-        '염색',
-        '트리트먼트',
-        '스타일링',
-        '펌+커트',
-        '염색+커트',
-        '하이라이트',
-        '매직스트레이트',
-        '볼륨펌',
-        '디지털펌',
-        '헤어케어',
-        '두피케어',
-        '웨딩헤어'
-      ];
-
-      const amounts = [25000, 35000, 45000, 55000, 65000, 75000, 85000, 95000, 120000, 150000, 180000, 30000, 40000, 200000];
-      const customers = ['김민수', '이영희', '박철수', '최지영', '정수현', '강미영', '윤서준', '임하늘', '조은비', '한지우'];
-
-      const randomIndex = Math.floor(Math.random() * services.length);
-      const customerIndex = Math.floor(Math.random() * customers.length);
-
-      const originalAmount = amounts[randomIndex];
-      const hasDiscount = Math.random() > 0.6;
-      let discountAmount = 0;
-      let usedCoupon = undefined;
-      let usedPoints = undefined;
- 
-      if (hasDiscount) {
-        const discountType = Math.random();
-        if (discountType > 0.7) {
-          // 쿠폰 사용
-          const coupons = [
-            { name: '신규고객 20% 할인', type: 'percent', value: 20 },
-            { name: '생일 축하 15% 할인', type: 'percent', value: 15 },
-            { name: '단골고객 10% 할인', type: 'percent', value: 10 },
-            { name: '1만원 할인쿠폰', type: 'fixed', value: 10000 }
-          ];
-          const coupon = coupons[Math.floor(Math.random() * coupons.length)];
-          discountAmount = coupon.type === 'percent'
-            ? Math.floor(originalAmount * (coupon.value / 100))
-            : coupon.value;
-          usedCoupon = { name: coupon.name, discountAmount };
-        } else if (discountType > 0.4) {
-          // 포인트 사용
-          usedPoints = Math.floor(Math.random() * 10000) + 1000;
-          discountAmount = usedPoints;
-        } else {
-          // 일반 할인
-          discountAmount = Math.floor(originalAmount * 0.1);
-        }
-      }
-
-      mockData.push({
-        id: `${date.getTime()}-${j}`,
-        originalAmount,
-        discountAmount,
-        finalAmount: originalAmount - discountAmount,
-        description: services[randomIndex],
-        date: date.toISOString().split('T')[0],
-        time: `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`,
-        paymentMethod: Math.random() > 0.3 ? 'card' : 'cash',
-        customerName: Math.random() > 0.2 ? customers[customerIndex] : undefined,
-        usedCoupon,
-        usedPoints,
-      });
-    }
-  }
-
-  return mockData.sort((a, b) => new Date(a.date + ' ' + a.time).getTime() - new Date(b.date + ' ' + b.time).getTime());
-};
 
 export default function SalesScreen() {
-  const [salesData, setSalesData] = useState<SalesData[]>(generateMockData());
-  const [modalVisible, setModalVisible] = useState(false);
+  // API 데이터 훅 사용
+  const {
+    summary,
+    chart,
+    salesList,
+    loading,
+    loadSummaryData,
+    loadChartData,
+    loadSalesList,
+    deleteSales: deleteSalesFromAPI,
+  } = useSalesData();
 
-  // 상위는 모달 표시/편집 여부 등 최소 상태만 유지
+  // UI 상태
+  const [modalVisible, setModalVisible] = useState(false);
   const [viewType, setViewType] = useState<'daily' | 'monthly'>('daily');
-  
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedSale, setSelectedSale] = useState<SalesData | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [showAllSales, setShowAllSales] = useState(false);
   const [tooltip, setTooltip] = useState<{ visible: boolean, x: number, y: number, data: any } | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   // createdAt에서 날짜 부분만 추출하는 헬퍼 함수
   const getDateFromCreatedAt = (createdAt: string) => createdAt.split(' ')[0];
@@ -158,24 +83,22 @@ export default function SalesScreen() {
       usedCouponId: payload.coupon?.id || ''
     };
 
-    // 실제 저장용 데이터 로그
-    console.log('실제 저장용 Sales 데이터:', salesData);
-
-    // API 호출로 salesData를 서버에 저장
     try {
-      const response = await axiosInstance.post('/sales/registration', salesData);
-      console.log('매출 등록 성공:', response.data);
+      // API 호출로 매출 등록
+      await salesService.registerSales(salesData);
       
-      // 성공 시 모달 닫기
+      // 성공 시 관련 데이터 새로고침
+      await Promise.all([
+        loadSummaryData(payload.visitDate),
+        loadSalesList(payload.visitDate, 1, true), // 강제 새로고침
+      ]);
+      
+      // 모달 닫기
       setModalVisible(false);
     } catch (error) {
-      console.log('매출 등록 실패:', error);
+      console.error('매출 등록 실패:', error);
       throw error; // 에러를 다시 throw하여 모달이 닫히지 않도록 함
     }
-
-    // View용 Mock 데이터는 기존 로직 유지
-    //setSalesData(prev => [...prev, newSales]);
-    //setModalVisible(false);
   };
 
 
@@ -186,7 +109,6 @@ export default function SalesScreen() {
   };
 
   const deleteSales = async (id: string) => {
-
     const confirmed = await showConfirm('정말 삭제하시겠습니까?', {
       title: '매출 취소',
       confirmButtonText: '확인',
@@ -194,18 +116,27 @@ export default function SalesScreen() {
     });
 
     if (confirmed) {
-      await setSalesData(prev => prev.filter(item => item.id !== id));
+      try {
+        await deleteSalesFromAPI(id, selectedDate);
+        
+        // 요약 데이터도 새로고침
+        const today = new Date().toISOString().split('T')[0];
+        if (selectedDate === today) {
+          await loadSummaryData(today);
+        }
+      } catch (error) {
+        console.error('매출 삭제 실패:', error);
+      }
     }
-
   };
 
   const getTodaySales = () => {
     const today = new Date().toISOString().split('T')[0];
-    return salesData.filter(item => item.date === today);
+    return salesList[today]?.data || [];
   };
 
   const getSelectedDateSales = () => {
-    return salesData.filter(item => item.date === selectedDate);
+    return salesList[selectedDate]?.data || [];
   };
 
   const isToday = (dateString: string) => {
@@ -213,20 +144,25 @@ export default function SalesScreen() {
     return dateString === today;
   };
 
-  const navigateDate = (direction: 'prev' | 'next') => {
+  const navigateDate = async (direction: 'prev' | 'next') => {
     const currentDate = new Date(selectedDate);
     if (direction === 'prev') {
       currentDate.setDate(currentDate.getDate() - 1);
     } else {
       currentDate.setDate(currentDate.getDate() + 1);
     }
-    setSelectedDate(currentDate.toISOString().split('T')[0]);
+    const newDate = currentDate.toISOString().split('T')[0];
+    setSelectedDate(newDate);
     setShowAllSales(false); // 날짜 변경 시 더보기 상태 초기화
+    
+    // 새로운 날짜의 데이터 로딩
+    await loadSalesList(newDate);
   };
 
   const getMonthSales = () => {
     const currentMonth = new Date().toISOString().slice(0, 7);
-    return salesData.filter(item => item.date.startsWith(currentMonth));
+    // 월별 데이터는 차트에서 가져오거나 별도 API 호출 필요
+    return [];
   };
 
   const getTotalAmount = (data: SalesData[]) => {
@@ -234,66 +170,38 @@ export default function SalesScreen() {
   };
 
   const getChartData = () => {
-    if (viewType === 'daily') {
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 6);
-      const dates = [];
-
-      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-        dates.push(d.toISOString().split('T')[0]);
-      }
-
-      const data = dates.map(date => {
-        const dayData = salesData.filter(item => item.date === date);
-        return getTotalAmount(dayData);
-      });
-
+    const chartData = viewType === 'daily' ? chart.daily : chart.monthly;
+    
+    if (!chartData) {
       return {
-        labels: dates.map(date => {
-          const d = new Date(date);
-          return `${d.getMonth() + 1}/${d.getDate()}`;
-        }),
-        datasets: [{ data }],
-        dates,
-      };
-    } else {
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 6);
-      const months = [];
-
-      for (let d = new Date(startDate); d <= endDate; d.setMonth(d.getMonth() + 1)) {
-        months.push(d.toISOString().slice(0, 7));
-      }
-
-      const data = months.map(month => {
-        const monthData = salesData.filter(item => item.date.startsWith(month));
-        return getTotalAmount(monthData);
-      });
-
-      return {
-        labels: months.map(month => {
-          const d = new Date(month + '-01');
-          return `${d.getMonth() + 1}월`;
-        }),
-        datasets: [{ data }],
-        dates: months,
+        labels: [],
+        datasets: [{ data: [] }],
+        dates: [],
       };
     }
+
+    return {
+      labels: chartData.labels,
+      datasets: [{ data: chartData.data }],
+      dates: chartData.dates,
+    };
   };
 
   const getChartDateRange = () => {
+    const chartData = viewType === 'daily' ? chart.daily : chart.monthly;
+    
+    if (!chartData || chartData.dates.length === 0) {
+      return '';
+    }
+
     if (viewType === 'daily') {
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 6);
+      const startDate = new Date(chartData.dates[0]);
+      const endDate = new Date(chartData.dates[chartData.dates.length - 1]);
       return `${startDate.getMonth() + 1}/${startDate.getDate()} - ${endDate.getMonth() + 1}/${endDate.getDate()}`;
     } else {
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 6);
-      return `${startDate.getMonth() + 1}월 - ${endDate.getMonth() + 1}월`;
+      const startMonth = chartData.dates[0];
+      const endMonth = chartData.dates[chartData.dates.length - 1];
+      return `${startMonth.slice(-2)}월 - ${endMonth.slice(-2)}월`;
     }
   };
 
@@ -304,9 +212,11 @@ export default function SalesScreen() {
       const chartData = getChartData();
       const selectedDate = chartData.dates[data.index];
       const amount = chartData.datasets[0].data[data.index];
+      
+      // 선택된 날짜의 매출 개수 계산
       const salesCount = viewType === 'daily'
-        ? salesData.filter(item => item.date === selectedDate).length
-        : salesData.filter(item => item.date.startsWith(selectedDate)).length;
+        ? (salesList[selectedDate]?.data?.length || 0)
+        : 0; // 월별의 경우 별도 계산 필요
 
       const tooltipData = {
         date: selectedDate,
@@ -329,6 +239,29 @@ export default function SalesScreen() {
     }
   };
 
+  // Pull-to-refresh 핸들러
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      await Promise.all([
+        loadSummaryData(today),
+        loadChartData(viewType),
+        loadSalesList(selectedDate, 1, true),
+      ]);
+    } catch (error) {
+      console.error('데이터 새로고침 실패:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // 차트 타입 변경 핸들러
+  const handleViewTypeChange = async (type: 'daily' | 'monthly') => {
+    setViewType(type);
+    await loadChartData(type);
+  };
+
   const todaySales = getTodaySales();
   const monthSales = getMonthSales();
 
@@ -338,6 +271,14 @@ export default function SalesScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#007AFF']}
+            tintColor="#007AFF"
+          />
+        }
       >
         {/* 헤더 */}
         <View style={styles.header}>
@@ -354,17 +295,29 @@ export default function SalesScreen() {
         <View style={styles.summaryContainer}>
           <View style={styles.summaryCard}>
             <ThemedText style={styles.summaryLabel}>오늘 매출</ThemedText>
-            <ThemedText style={styles.summaryAmount}>
-              {getTotalAmount(todaySales).toLocaleString()}원
-            </ThemedText>
-            <ThemedText style={styles.summaryCount}>{todaySales.length}건</ThemedText>
+            {loading.summary ? (
+              <ThemedText style={[styles.summaryAmount, { color: '#8E8E93' }]}>로딩 중...</ThemedText>
+            ) : (
+              <>
+                <ThemedText style={styles.summaryAmount}>
+                  {summary?.today?.amount?.toLocaleString() || '0'}원
+                </ThemedText>
+                <ThemedText style={styles.summaryCount}>{summary?.today?.count || 0}건</ThemedText>
+              </>
+            )}
           </View>
           <View style={styles.summaryCard}>
             <ThemedText style={styles.summaryLabel}>이번 달 매출</ThemedText>
-            <ThemedText style={styles.summaryAmount}>
-              {getTotalAmount(monthSales).toLocaleString()}원
-            </ThemedText>
-            <ThemedText style={styles.summaryCount}>{monthSales.length}건</ThemedText>
+            {loading.summary ? (
+              <ThemedText style={[styles.summaryAmount, { color: '#8E8E93' }]}>로딩 중...</ThemedText>
+            ) : (
+              <>
+                <ThemedText style={styles.summaryAmount}>
+                  {summary?.month?.amount?.toLocaleString() || '0'}원
+                </ThemedText>
+                <ThemedText style={styles.summaryCount}>{summary?.month?.count || 0}건</ThemedText>
+              </>
+            )}
           </View>
         </View>
 
@@ -378,19 +331,23 @@ export default function SalesScreen() {
             <View style={styles.chartToggle}>
               <TouchableOpacity
                 style={[styles.toggleButton, viewType === 'daily' && styles.activeToggle]}
-                onPress={() => setViewType('daily')}
+                onPress={() => handleViewTypeChange('daily')}
               >
                 <ThemedText style={[styles.toggleText, viewType === 'daily' && styles.activeToggleText]}>일별</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.toggleButton, viewType === 'monthly' && styles.activeToggle]}
-                onPress={() => setViewType('monthly')}
+                onPress={() => handleViewTypeChange('monthly')}
               >
                 <ThemedText style={[styles.toggleText, viewType === 'monthly' && styles.activeToggleText]}>월별</ThemedText>
               </TouchableOpacity>
             </View>
           </View>
-          {salesData.length > 0 && (
+          {loading.chart ? (
+            <View style={[styles.chart, { height: 220, justifyContent: 'center', alignItems: 'center' }]}>
+              <ThemedText style={{ color: '#8E8E93' }}>차트 데이터를 불러오는 중...</ThemedText>
+            </View>
+          ) : getChartData().datasets[0].data.length > 0 ? (
             <LineChart
               data={getChartData()}
               width={screenWidth - 80}
@@ -413,6 +370,10 @@ export default function SalesScreen() {
               style={styles.chart}
               onDataPointClick={handleChartPress}
             />
+          ) : (
+            <View style={[styles.chart, { height: 220, justifyContent: 'center', alignItems: 'center' }]}>
+              <ThemedText style={{ color: '#8E8E93' }}>차트 데이터가 없습니다</ThemedText>
+            </View>
           )}
           <View style={styles.chartHint}>
             <Ionicons name="information-circle-outline" size={14} color="#8E8E93" />
@@ -467,7 +428,11 @@ export default function SalesScreen() {
             </ThemedText>
           </View>
 
-          {getSelectedDateSales().length === 0 ? (
+          {loading.list ? (
+            <View style={styles.emptyState}>
+              <ThemedText style={{ color: '#8E8E93' }}>매출 목록을 불러오는 중...</ThemedText>
+            </View>
+          ) : getSelectedDateSales().length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="calendar-outline" size={48} color="#8E8E93" />
               <ThemedText style={styles.emptyText}>선택한 날짜에 매출이 없습니다</ThemedText>
