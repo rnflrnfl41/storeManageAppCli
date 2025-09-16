@@ -1,0 +1,206 @@
+import { useState, useEffect, useCallback } from 'react';
+import { salesService, SalesSummaryResponse, SalesChartResponse, SalesListResponse } from '@services/salesService';
+import { SalesData } from '@shared/types/salesTypes';
+
+interface LoadingState {
+  summary: boolean;
+  chart: boolean;
+  list: boolean;
+}
+
+interface SalesDataState {
+  summary: SalesSummaryResponse | null;
+  chart: {
+    daily: SalesChartResponse | null;
+    monthly: SalesChartResponse | null;
+  };
+  salesList: {
+    [date: string]: {
+      data: SalesData[];
+      pagination: { page: number; total: number; totalPages: number };
+    };
+  };
+  loading: LoadingState;
+}
+
+const initialState: SalesDataState = {
+  summary: null,
+  chart: {
+    daily: null,
+    monthly: null,
+  },
+  salesList: {},
+  loading: {
+    summary: false,
+    chart: false,
+    list: false,
+  },
+};
+
+export const useSalesData = () => {
+  const [state, setState] = useState<SalesDataState>(initialState);
+
+  // 로딩 상태 업데이트
+  const setLoading = useCallback((key: keyof LoadingState, loading: boolean) => {
+    setState(prev => ({
+      ...prev,
+      loading: {
+        ...prev.loading,
+        [key]: loading,
+      },
+    }));
+  }, []);
+
+  // 요약 데이터 로딩
+  const loadSummaryData = useCallback(async (date: string) => {
+    try {
+      setLoading('summary', true);
+      const data = await salesService.getSummary(date);
+      setState(prev => ({
+        ...prev,
+        summary: data,
+      }));
+    } catch (error) {
+      console.error('요약 데이터 로딩 실패:', error);
+    } finally {
+      setLoading('summary', false);
+    }
+  }, [setLoading]);
+
+  // 차트 데이터 로딩
+  const loadChartData = useCallback(async (type: 'daily' | 'monthly') => {
+    try {
+      setLoading('chart', true);
+      
+      const today = new Date();
+      let startDate: string;
+      let endDate: string;
+
+      if (type === 'daily') {
+        // 최근 7일
+        const start = new Date(today);
+        start.setDate(start.getDate() - 6);
+        startDate = start.toISOString().split('T')[0];
+        endDate = today.toISOString().split('T')[0];
+      } else {
+        // 최근 6개월
+        const start = new Date(today);
+        start.setMonth(start.getMonth() - 5);
+        startDate = start.toISOString().slice(0, 7) + '-01';
+        endDate = today.toISOString().slice(0, 7) + '-31';
+      }
+
+      const data = await salesService.getChartData({
+        type,
+        startDate,
+        endDate,
+      });
+
+      setState(prev => ({
+        ...prev,
+        chart: {
+          ...prev.chart,
+          [type]: data,
+        },
+      }));
+    } catch (error) {
+      console.error('차트 데이터 로딩 실패:', error);
+    } finally {
+      setLoading('chart', false);
+    }
+  }, [setLoading]);
+
+  // 매출 목록 로딩
+  const loadSalesList = useCallback(async (date: string, page: number = 1, forceRefresh: boolean = false) => {
+    // 이미 캐시된 데이터가 있고 강제 새로고침이 아닌 경우
+    if (!forceRefresh && state.salesList[date]) {
+      return;
+    }
+
+    try {
+      setLoading('list', true);
+      const data = await salesService.getSalesList({ date, page, limit: 20 });
+      
+      setState(prev => ({
+        ...prev,
+        salesList: {
+          ...prev.salesList,
+          [date]: {
+            data: data.sales,
+            pagination: data.pagination,
+          },
+        },
+      }));
+    } catch (error) {
+      console.error('매출 목록 로딩 실패:', error);
+    } finally {
+      setLoading('list', false);
+    }
+  }, [state.salesList, setLoading]);
+
+  // 매출 삭제
+  const deleteSales = useCallback(async (id: string, date: string) => {
+    try {
+      await salesService.deleteSales(id);
+      
+      // 로컬 상태에서도 제거
+      setState(prev => ({
+        ...prev,
+        salesList: {
+          ...prev.salesList,
+          [date]: {
+            ...prev.salesList[date],
+            data: prev.salesList[date]?.data.filter(sale => sale.id !== id) || [],
+            pagination: {
+              ...prev.salesList[date]?.pagination,
+              total: (prev.salesList[date]?.pagination.total || 1) - 1,
+            },
+          },
+        },
+      }));
+
+      // 요약 데이터도 업데이트
+      if (state.summary) {
+        const today = new Date().toISOString().split('T')[0];
+        if (date === today) {
+          await loadSummaryData(today);
+        }
+      }
+    } catch (error) {
+      console.error('매출 삭제 실패:', error);
+      throw error;
+    }
+  }, [state.summary, loadSummaryData]);
+
+  // 초기 데이터 로딩
+  const initializeData = useCallback(async () => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // 병렬로 요약 데이터와 차트 데이터 로딩
+    await Promise.all([
+      loadSummaryData(today),
+      loadChartData('daily'),
+      loadSalesList(today),
+    ]);
+  }, [loadSummaryData, loadChartData, loadSalesList]);
+
+  // 컴포넌트 마운트 시 초기 데이터 로딩
+  useEffect(() => {
+    initializeData();
+  }, [initializeData]);
+
+  return {
+    // 데이터
+    summary: state.summary,
+    chart: state.chart,
+    salesList: state.salesList,
+    loading: state.loading,
+    
+    // 액션
+    loadSummaryData,
+    loadChartData,
+    loadSalesList,
+    deleteSales,
+    initializeData,
+  };
+};
