@@ -16,7 +16,7 @@ export interface SalesSummaryResponse {
 export interface SalesChartResponse {
   data: number[];
   dates: string[];
-  count: number[];
+  counts: number[];
 }
 
 export interface SalesListResponse {

@@ -177,7 +177,7 @@ export default function SalesScreen() {
         labels: [],
         datasets: [{ data: [] }],
         dates: [],
-        count: [],
+        counts: [],
       };
     }
 
@@ -193,7 +193,7 @@ export default function SalesScreen() {
       labels,
       datasets: [{ data: chartData.data }],
       dates: chartData.dates,
-      count: chartData.count || [],
+      counts: chartData.counts || [],
     };
   };
 
@@ -224,7 +224,8 @@ export default function SalesScreen() {
       const amount = chartData.datasets[0].data[data.index];
       
       // 차트 데이터에서 count 가져오기
-      const salesCount = chartData.count?.[data.index] || 0;
+      const salesCount = chartData.counts?.[data.index] || 0;
+      console.log(chartData); 
 
       const tooltipData = {
         date: selectedDate,
