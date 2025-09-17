@@ -463,7 +463,7 @@ export default function SalesScreen() {
                           </ThemedText>
                         )}
                       </View>
-                      <ThemedText style={styles.salesDescription}>{item.description}</ThemedText>
+                      <ThemedText style={styles.salesDescription}>{item.memo}</ThemedText>
                       <View style={styles.salesMeta}>
                         <ThemedText style={styles.salesTime}>{item.time}</ThemedText>
                         {item.customerName && (
