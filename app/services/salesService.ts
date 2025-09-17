@@ -67,7 +67,7 @@ export const salesService = {
   },
 
   // 매출 삭제
-  deleteSales: async (id: string): Promise<void> => {
+  deleteSales: async (id: number): Promise<void> => {
     await axiosInstance.delete(`/sales/${id}`);
   },
 

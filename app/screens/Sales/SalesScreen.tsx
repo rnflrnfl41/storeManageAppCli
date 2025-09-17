@@ -108,7 +108,7 @@ export default function SalesScreen() {
     setDetailModalVisible(true);
   };
 
-  const deleteSales = async (id: string) => {
+  const deleteSales = async (id: number) => {
     const confirmed = await showConfirm('정말 삭제하시겠습니까?', {
       title: '매출 취소',
       confirmButtonText: '확인',
