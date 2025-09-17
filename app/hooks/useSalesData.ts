@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { salesService, SalesSummaryResponse, SalesChartResponse, SalesListResponse } from '@services/salesService';
+import { salesService, SalesSummaryResponse, SalesChartResponse, SalesListResponse, ChartDataParams } from '@services/salesService';
 import { SalesData } from '@shared/types/salesTypes';
 
 interface LoadingState {
@@ -87,14 +87,19 @@ export const useSalesData = () => {
         const start = new Date(today);
         start.setMonth(start.getMonth() - 5);
         startDate = start.toISOString().slice(0, 7) + '-01';
-        endDate = today.toISOString().slice(0, 7) + '-31';
+        
+        // 현재 달의 마지막 날 계산
+        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        endDate = endOfMonth.toISOString().split('T')[0];
       }
 
-      const data = await salesService.getChartData({
+      const params: ChartDataParams = {
         type,
         startDate,
         endDate,
-      });
+      };
+
+      const data = await salesService.getChartData(params);
 
       setState(prev => ({
         ...prev,
@@ -204,3 +209,4 @@ export const useSalesData = () => {
     initializeData,
   };
 };
+

@@ -177,13 +177,23 @@ export default function SalesScreen() {
         labels: [],
         datasets: [{ data: [] }],
         dates: [],
+        count: [],
       };
     }
 
+    // dates를 기반으로 labels 동적 생성
+    const labels = chartData.dates.map(date => {
+      const d = new Date(date);
+      return viewType === 'daily' 
+        ? `${d.getMonth() + 1}/${d.getDate()}`
+        : `${d.getMonth() + 1}월`;
+    });
+
     return {
-      labels: chartData.labels,
+      labels,
       datasets: [{ data: chartData.data }],
       dates: chartData.dates,
+      count: chartData.count || [],
     };
   };
 
@@ -213,10 +223,8 @@ export default function SalesScreen() {
       const selectedDate = chartData.dates[data.index];
       const amount = chartData.datasets[0].data[data.index];
       
-      // 선택된 날짜의 매출 개수 계산
-      const salesCount = viewType === 'daily'
-        ? (salesList[selectedDate]?.data?.length || 0)
-        : 0; // 월별의 경우 별도 계산 필요
+      // 차트 데이터에서 count 가져오기
+      const salesCount = chartData.count?.[data.index] || 0;
 
       const tooltipData = {
         date: selectedDate,

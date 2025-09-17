@@ -14,9 +14,9 @@ export interface SalesSummaryResponse {
 }
 
 export interface SalesChartResponse {
-  labels: string[];
   data: number[];
   dates: string[];
+  count: number[];
 }
 
 export interface SalesListResponse {
@@ -71,8 +71,9 @@ export const salesService = {
     await axiosInstance.delete(`/sales/${id}`);
   },
 
-  // 매출 등록 (기존 함수와 동일)
+  // 매출 등록
   registerSales: async (salesData: Sales): Promise<void> => {
     await axiosInstance.post('/sales/registration', salesData);
   },
 };
+
