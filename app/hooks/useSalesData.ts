@@ -144,7 +144,7 @@ export const useSalesData = () => {
   }, [state.salesList, setLoading]);
 
   // 매출 삭제
-  const deleteSales = useCallback(async (id: string, date: string) => {
+  const deleteSales = useCallback(async (id: number, date: string) => {
     try {
       await salesService.deleteSales(id);
       

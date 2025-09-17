@@ -108,7 +108,7 @@ export default function SalesScreen() {
     setDetailModalVisible(true);
   };
 
-  const deleteSales = async (id: string) => {
+  const deleteSales = async (id: number) => {
     const confirmed = await showConfirm('정말 삭제하시겠습니까?', {
       title: '매출 취소',
       confirmButtonText: '확인',
@@ -177,7 +177,7 @@ export default function SalesScreen() {
         labels: [],
         datasets: [{ data: [] }],
         dates: [],
-        count: [],
+        counts: [],
       };
     }
 
@@ -193,7 +193,7 @@ export default function SalesScreen() {
       labels,
       datasets: [{ data: chartData.data }],
       dates: chartData.dates,
-      count: chartData.count || [],
+      counts: chartData.counts || [],
     };
   };
 
@@ -224,7 +224,8 @@ export default function SalesScreen() {
       const amount = chartData.datasets[0].data[data.index];
       
       // 차트 데이터에서 count 가져오기
-      const salesCount = chartData.count?.[data.index] || 0;
+      const salesCount = chartData.counts?.[data.index] || 0;
+      console.log(chartData); 
 
       const tooltipData = {
         date: selectedDate,
@@ -462,7 +463,7 @@ export default function SalesScreen() {
                           </ThemedText>
                         )}
                       </View>
-                      <ThemedText style={styles.salesDescription}>{item.description}</ThemedText>
+                      <ThemedText style={styles.salesDescription}>{item.memo}</ThemedText>
                       <View style={styles.salesMeta}>
                         <ThemedText style={styles.salesTime}>{item.time}</ThemedText>
                         {item.customerName && (

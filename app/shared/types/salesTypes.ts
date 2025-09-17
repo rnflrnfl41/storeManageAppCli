@@ -37,13 +37,13 @@ export interface Sales {
   usedCouponId: string;
 }
 
-// View용 Mock 데이터 타입 (기존 SalesData)
+// View 데이터 타입
 export interface SalesData {
-  id: string;
+  id: number;
   originalAmount: number;
   discountAmount: number;
   finalAmount: number;
-  description: string;
+  memo: string;
   date: string;
   time: string;
   paymentMethod: 'card' | 'cash';
@@ -76,7 +76,7 @@ export interface SalesDetailModalProps {
   visible: boolean;
   sale: SalesData | null;
   onClose: () => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: number) => void;
 }
 
 export interface CustomerSearchModalProps {
