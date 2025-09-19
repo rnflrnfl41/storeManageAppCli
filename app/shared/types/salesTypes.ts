@@ -49,6 +49,7 @@ export interface SalesData {
   paymentMethod: 'card' | 'cash';
   customerName?: string;
   usedCoupon?: {
+    id: string;
     name: string;
     discountAmount: number;
   };
