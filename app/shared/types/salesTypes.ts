@@ -20,7 +20,7 @@ export interface Service {
   basePrice: number;
 }
 
-// 실제 저장용 Sales 타입
+//저장용 Sales 타입
 export interface Sales {
   memo: string;
   visitDate: string;
@@ -85,4 +85,66 @@ export interface CustomerSearchModalProps {
   onSelectCustomer: (customer: Customer) => void;
   onSelectGuestCustomer: () => void;
   onClose: () => void;
+}
+
+// API 응답 타입들
+export interface SalesSummaryResponse {
+  today: {
+    amount: number;
+    count: number;
+  };
+  month: {
+    amount: number;
+    count: number;
+  };
+}
+
+export interface SalesChartResponse {
+  data: number[];
+  dates: string[];
+  counts: number[];
+}
+
+export interface SalesListResponse {
+  sales: SalesData[];
+  pagination: {
+    page: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface SalesListParams {
+  date: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface ChartDataParams {
+  type: 'daily' | 'monthly';
+  startDate: string;
+  endDate: string;
+}
+
+// useSalesData 훅 관련 타입들
+export interface LoadingState {
+  summary: boolean;
+  chart: boolean;
+  list: boolean;
+  loadMore: boolean;
+}
+
+export interface SalesDataState {
+  summary: SalesSummaryResponse | null;
+  chart: {
+    daily: SalesChartResponse | null;
+    monthly: SalesChartResponse | null;
+  };
+  salesList: {
+    [date: string]: {
+      data: SalesData[];
+      pagination: { page: number; total: number; totalPages: number };
+    };
+  };
+  loading: LoadingState;
 }
