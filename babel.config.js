@@ -3,22 +3,21 @@ module.exports = {
    plugins: [
     ['module-resolver', {
       root: ['./'],
-      alias: {
-        '@': './',
-        '@screens': './app/screens',
-        '@config': './app/config',
-        '@components': './app/components',
-        '@features': './app/features',
-        '@shared': './app/shared',
-        '@store': './app/store',
-        '@assets': './assets',
-        '@constants': './app/shared/constants',
-        '@hooks': './app/hooks',
-        '@utils': './app/shared/utils',
-        '@types': './app/shared/types',
-        '@services': './app/services',
-        '@styles': './app/shared/styles',
-      }
+        alias: {
+          '@': './',
+          '@src': './src',
+          '@features': './src/features',
+          '@shared': './src/shared',
+          '@store': './src/store',
+          '@assets': './assets',
+          '@config': './src/shared/config',
+          '@components': './src/shared/components',
+          '@hooks': './src/shared/hooks',
+          '@utils': './src/shared/utils',
+          '@types': './src/shared/types',
+          '@services': './src/shared/services',
+          '@styles': './src/shared/styles',
+        }
     }],
   ],
 };
