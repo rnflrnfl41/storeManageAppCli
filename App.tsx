@@ -5,9 +5,9 @@ import { GlobalSpinner } from '@components';
 import Toast from 'react-native-toast-message';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import LoginScreen from '@screens/LoginScreen';
-import TabNavigator from '@components/TabNavigator';
-import { navigationRef } from '@/app/shared/utils/navigateUtils';
+import { LoginScreen } from '@features/auth';
+import { TabNavigator } from '@components';
+import { navigationRef } from '@utils/navigateUtils';
 import { AppStackParamList } from '@types';
 
 function App() {
