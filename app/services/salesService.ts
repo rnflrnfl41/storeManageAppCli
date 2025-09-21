@@ -59,7 +59,7 @@ export const salesService = {
 
   // 매출 목록 조회
   getSalesList: async (params: SalesListParams): Promise<SalesListResponse> => {
-    const { date, page = 1, limit = 20 } = params;
+    const { date, page = 1, limit = 5 } = params;
     const response = await axiosInstance.get(
       `/sales?date=${date}&page=${page}&limit=${limit}`
     );

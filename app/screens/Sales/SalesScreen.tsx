@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CalendarModal from '@components/CalendarModal';
 import { ThemedText } from '@components/ThemedText';
+import InlineSpinner from '@components/InlineSpinner';
 import { LineChart } from 'react-native-chart-kit';
 import SalesDetailModal from './components/SalesDetailModal';
 import SalesRegisterModal from './components/SalesRegisterModal';
@@ -38,6 +39,7 @@ export default function SalesScreen() {
     loadSummaryData,
     loadChartData,
     loadSalesList,
+    loadMoreSalesList,
     deleteSales: deleteSalesFromAPI,
   } = useSalesData();
 
@@ -48,7 +50,6 @@ export default function SalesScreen() {
   const [selectedSale, setSelectedSale] = useState<SalesData | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [calendarVisible, setCalendarVisible] = useState(false);
-  const [showAllSales, setShowAllSales] = useState(false);
   const [tooltip, setTooltip] = useState<{ visible: boolean, x: number, y: number, data: any } | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -139,6 +140,33 @@ export default function SalesScreen() {
     return salesList[selectedDate]?.data || [];
   };
 
+  // 더보기 가능 여부 확인
+  const hasMoreData = () => {
+    const currentData = salesList[selectedDate];
+    if (!currentData) return false;
+    return currentData.pagination.page < currentData.pagination.totalPages;
+  };
+
+  // 더보기 버튼 텍스트
+  const getLoadMoreText = () => {
+    const currentData = salesList[selectedDate];
+    if (!currentData) return '더보기';
+    
+    const remainingCount = currentData.pagination.total - currentData.data.length;
+    return remainingCount > 0 ? `더보기 (+${remainingCount})` : '더보기';
+  };
+
+  // 더보기 로딩 함수
+  const handleLoadMore = async () => {
+    if (loading.loadMore || !hasMoreData()) return;
+    
+    try {
+      await loadMoreSalesList(selectedDate);
+    } catch (error) {
+      console.error('더보기 로딩 실패:', error);
+    }
+  };
+
   const isToday = (dateString: string) => {
     const today = new Date().toISOString().split('T')[0];
     return dateString === today;
@@ -153,7 +181,6 @@ export default function SalesScreen() {
     }
     const newDate = currentDate.toISOString().split('T')[0];
     setSelectedDate(newDate);
-    setShowAllSales(false); // 날짜 변경 시 더보기 상태 초기화
     
     // 새로운 날짜의 데이터 로딩
     await loadSalesList(newDate);
@@ -448,7 +475,7 @@ export default function SalesScreen() {
             </View>
           ) : (
             <>
-              {(showAllSales ? getSelectedDateSales() : getSelectedDateSales().slice(0, 5))
+              {getSelectedDateSales()
                 .sort((a, b) => b.time.localeCompare(a.time))
                 .map((item) => (
                   <TouchableOpacity key={item.id} style={styles.salesItem} onPress={() => handleSalePress(item)}>
@@ -489,19 +516,24 @@ export default function SalesScreen() {
                   </TouchableOpacity>
                 ))
               }
-              {getSelectedDateSales().length > 5 && (
+              {hasMoreData() && (
                 <TouchableOpacity
                   style={styles.showMoreButton}
-                  onPress={() => setShowAllSales(!showAllSales)}
+                  onPress={handleLoadMore}
+                  disabled={loading.loadMore}
                 >
                   <ThemedText style={styles.showMoreText}>
-                    {showAllSales ? '접기' : `더보기 (+${getSelectedDateSales().length - 5})`}
+                    {loading.loadMore ? '로딩 중...' : getLoadMoreText()}
                   </ThemedText>
-                  <Ionicons
-                    name={showAllSales ? "chevron-up" : "chevron-down"}
-                    size={20}
-                    color="#007AFF"
-                  />
+                  {loading.loadMore ? (
+                    <InlineSpinner size="small" color="#007AFF" />
+                  ) : (
+                    <Ionicons
+                      name="chevron-down"
+                      size={20}
+                      color="#007AFF"
+                    />
+                  )}
                 </TouchableOpacity>
               )}
             </>
@@ -526,9 +558,11 @@ export default function SalesScreen() {
         visible={calendarVisible}
         currentDate={selectedDate}
         onClose={() => setCalendarVisible(false)}
-        onSelect={(dateString) => {
+        onSelect={async (dateString) => {
           setSelectedDate(dateString);
           setCalendarVisible(false);
+          // 선택된 날짜의 데이터 로드
+          await loadSalesList(dateString);
         }}
       />
 

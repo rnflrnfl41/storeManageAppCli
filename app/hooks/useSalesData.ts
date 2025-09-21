@@ -6,6 +6,7 @@ interface LoadingState {
   summary: boolean;
   chart: boolean;
   list: boolean;
+  loadMore: boolean;
 }
 
 interface SalesDataState {
@@ -34,6 +35,7 @@ const initialState: SalesDataState = {
     summary: false,
     chart: false,
     list: false,
+    loadMore: false,
   },
 };
 
@@ -124,7 +126,9 @@ export const useSalesData = () => {
 
     try {
       setLoading('list', true);
-      const data = await salesService.getSalesList({ date, page, limit: 20 });
+      const data = await salesService.getSalesList({ date, page, limit: 5 });
+
+      console.log(data);
       
       setState(prev => ({
         ...prev,
@@ -140,6 +144,43 @@ export const useSalesData = () => {
       console.error('매출 목록 로딩 실패:', error);
     } finally {
       setLoading('list', false);
+    }
+  }, [state.salesList, setLoading]);
+
+  // 더보기 로딩 (페이징)
+  const loadMoreSalesList = useCallback(async (date: string) => {
+    const currentData = state.salesList[date];
+    if (!currentData) {
+      console.warn('현재 날짜의 데이터가 없습니다.');
+      return;
+    }
+
+    const nextPage = currentData.pagination.page + 1;
+    const hasMore = nextPage <= currentData.pagination.totalPages;
+
+    if (!hasMore) {
+      console.log('더 이상 로드할 데이터가 없습니다.');
+      return;
+    }
+
+    try {
+      setLoading('loadMore', true);
+      const data = await salesService.getSalesList({ date, page: nextPage, limit: 5 });
+      
+      setState(prev => ({
+        ...prev,
+        salesList: {
+          ...prev.salesList,
+          [date]: {
+            data: [...prev.salesList[date].data, ...data.sales],
+            pagination: data.pagination,
+          },
+        },
+      }));
+    } catch (error) {
+      console.error('더보기 로딩 실패:', error);
+    } finally {
+      setLoading('loadMore', false);
     }
   }, [state.salesList, setLoading]);
 
@@ -187,7 +228,7 @@ export const useSalesData = () => {
       loadChartData('daily'),
       loadSalesList(today),
     ]);
-  }, [loadSummaryData, loadChartData, loadSalesList]);
+  }, [loadSummaryData, loadChartData]);
 
   // 컴포넌트 마운트 시 초기 데이터 로딩
   useEffect(() => {
@@ -205,6 +246,7 @@ export const useSalesData = () => {
     loadSummaryData,
     loadChartData,
     loadSalesList,
+    loadMoreSalesList,
     deleteSales,
     initializeData,
   };

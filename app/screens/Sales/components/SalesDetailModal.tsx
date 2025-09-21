@@ -21,7 +21,7 @@ const SalesDetailModal: React.FC<SalesDetailModalProps> = ({ visible, sale, onCl
             <View style={styles.detailContent}>
               <View style={styles.detailRow}>
                 <ThemedText style={styles.detailLabel}>서비스</ThemedText>
-                <ThemedText style={styles.detailValue}>{sale.description}</ThemedText>
+                <ThemedText style={styles.detailValue}>{sale.memo}</ThemedText>
               </View>
 
               <View style={styles.detailRow}>
