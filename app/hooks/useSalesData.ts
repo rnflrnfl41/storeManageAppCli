@@ -1,28 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { salesService, SalesSummaryResponse, SalesChartResponse, SalesListResponse, ChartDataParams } from '@services/salesService';
-import { SalesData } from '@shared/types/salesTypes';
-
-interface LoadingState {
-  summary: boolean;
-  chart: boolean;
-  list: boolean;
-  loadMore: boolean;
-}
-
-interface SalesDataState {
-  summary: SalesSummaryResponse | null;
-  chart: {
-    daily: SalesChartResponse | null;
-    monthly: SalesChartResponse | null;
-  };
-  salesList: {
-    [date: string]: {
-      data: SalesData[];
-      pagination: { page: number; total: number; totalPages: number };
-    };
-  };
-  loading: LoadingState;
-}
+import { salesService } from '@services/salesService';
+import { 
+  ChartDataParams,
+  LoadingState,
+  SalesDataState
+} from '@shared/types/salesTypes';
 
 const initialState: SalesDataState = {
   summary: null,

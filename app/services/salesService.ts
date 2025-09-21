@@ -1,44 +1,12 @@
 import { axiosInstance } from './apiClient';
-import { SalesData, Sales } from '@shared/types/salesTypes';
-
-// API 응답 타입 정의
-export interface SalesSummaryResponse {
-  today: {
-    amount: number;
-    count: number;
-  };
-  month: {
-    amount: number;
-    count: number;
-  };
-}
-
-export interface SalesChartResponse {
-  data: number[];
-  dates: string[];
-  counts: number[];
-}
-
-export interface SalesListResponse {
-  sales: SalesData[];
-  pagination: {
-    page: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-export interface SalesListParams {
-  date: string;
-  page?: number;
-  limit?: number;
-}
-
-export interface ChartDataParams {
-  type: 'daily' | 'monthly';
-  startDate: string;
-  endDate: string;
-}
+import { 
+  Sales, 
+  SalesSummaryResponse, 
+  SalesChartResponse, 
+  SalesListResponse, 
+  SalesListParams, 
+  ChartDataParams 
+} from '@shared/types/salesTypes';
 
 // 매출 서비스 함수들
 export const salesService = {
