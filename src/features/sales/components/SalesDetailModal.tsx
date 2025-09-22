@@ -7,7 +7,7 @@ import { SalesData, SalesDetailModalProps } from '@shared/types/salesTypes';
 
 const SalesDetailModal: React.FC<SalesDetailModalProps> = ({ visible, sale, onClose, onDelete }) => {
   return (
-    <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
+    <Modal animationType="fade" transparent={true} visible={visible} onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={styles.detailModalContent}>
           <View style={styles.detailHeader}>

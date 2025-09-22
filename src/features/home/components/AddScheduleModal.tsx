@@ -112,7 +112,7 @@ export function AddScheduleModal({ visible, onClose, onSave }: AddScheduleModalP
 
   return (
     <Modal
-      animationType="slide"
+      animationType="fade"
       transparent={true}
       visible={visible}
       onRequestClose={handleClose}

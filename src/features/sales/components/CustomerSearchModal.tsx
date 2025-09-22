@@ -40,7 +40,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
   }, [customers, searchText]);
   return (
     <Modal
-      animationType="slide"
+      animationType="fade"
       transparent={true}
       visible={visible}
       onRequestClose={onClose}
