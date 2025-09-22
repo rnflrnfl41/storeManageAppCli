@@ -7,6 +7,7 @@ export const styles = StyleSheet.create({
     },
     scrollView: {
       flex: 1,
+      backgroundColor: '#f8f9fa',
     },
     scrollContent: {
       paddingBottom: 20,
@@ -19,6 +20,12 @@ export const styles = StyleSheet.create({
       backgroundColor: '#ffffff',
       borderBottomWidth: 1,
       borderBottomColor: '#e9ecef',
+      zIndex: 1000,
+      elevation: 4,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
     },
     title: {
       fontSize: 24,
@@ -194,15 +201,35 @@ export const styles = StyleSheet.create({
       justifyContent: 'center',
       alignItems: 'center',
     },
-    modalContent: {
-      padding: 24,
+    modalContainer: {
+      width: '90%',
+      maxWidth: 400,
+      height: '80%',
+      backgroundColor: '#ffffff',
+      borderRadius: 12,
+      overflow: 'hidden',
+    },
+    modalHeader: {
+      padding: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: '#e9ecef',
+      backgroundColor: '#ffffff',
     },
     modalTitle: {
       fontSize: 20,
       fontWeight: 'bold',
       color: '#212529',
-      marginBottom: 24,
       textAlign: 'center',
+    },
+    modalScrollView: {
+      flex: 1,
+    },
+    modalScrollContent: {
+      padding: 24,
+      paddingBottom: 20,
+    },
+    modalContent: {
+      flex: 1,
     },
     inputContainer: {
       marginBottom: 20,
@@ -224,7 +251,10 @@ export const styles = StyleSheet.create({
     modalButtons: {
       flexDirection: 'row',
       gap: 12,
-      marginTop: 8,
+      padding: 20,
+      backgroundColor: '#ffffff',
+      borderTopWidth: 1,
+      borderTopColor: '#e9ecef',
     },
     cancelButton: {
       flex: 1,
@@ -682,13 +712,6 @@ export const styles = StyleSheet.create({
     },
     disabledButton: {
       opacity: 0.5,
-    },
-    modalScrollView: {
-      maxHeight: '80%',
-      width: '90%',
-      maxWidth: 400,
-      backgroundColor: '#ffffff',
-      borderRadius: 12,
     },
     customerSelectButton: {
       borderWidth: 1,
