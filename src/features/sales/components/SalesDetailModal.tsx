@@ -41,7 +41,7 @@ const SalesDetailModal: React.FC<SalesDetailModalProps> = ({ visible, sale, onCl
                 <ThemedText style={styles.detailAmount}>{sale.finalAmount.toLocaleString()}원</ThemedText>
               </View>
 
-              {sale.usedCoupon && (
+              {sale.usedCoupon && sale.usedCoupon.discountAmount > 0 && (
                 <View style={styles.detailRow}>
                   <ThemedText style={styles.detailLabel}>사용 쿠폰</ThemedText>
                   <View style={styles.couponInfo}>
@@ -51,7 +51,7 @@ const SalesDetailModal: React.FC<SalesDetailModalProps> = ({ visible, sale, onCl
                 </View>
               )}
 
-              {sale.usedPoints && (
+              {sale.usedPoints !== undefined && sale.usedPoints !== null && sale.usedPoints > 0 && (
                 <View style={styles.detailRow}>
                   <ThemedText style={styles.detailLabel}>사용 포인트</ThemedText>
                   <ThemedText style={styles.pointsUsed}>{sale.usedPoints.toLocaleString()}P</ThemedText>

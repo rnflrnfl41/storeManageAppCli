@@ -49,8 +49,8 @@ export interface SalesData {
   paymentMethod: 'card' | 'cash';
   customerName?: string;
   usedCoupon?: {
-    id: string;
-    name: string;
+    id: string | null;
+    name: string | null;
     discountAmount: number;
   };
   usedPoints?: number;
