@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
       flex: 1,
     },
     scrollContent: {
-      paddingBottom: 80,
+      paddingBottom: 20,
     },
     header: {
       flexDirection: 'row',

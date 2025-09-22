@@ -108,7 +108,7 @@ export default function CustomerScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* 헤더 */}
       <View style={styles.header}>
         <ThemedText style={styles.title}>고객관리</ThemedText>
@@ -307,6 +307,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   scrollContent: {
-    paddingBottom: 120,
+    paddingBottom: 20,
   },
 });

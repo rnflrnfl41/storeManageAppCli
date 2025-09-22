@@ -298,7 +298,7 @@ export default function SalesScreen() {
   const monthSales = getMonthSales();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}

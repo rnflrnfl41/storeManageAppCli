@@ -5,12 +5,12 @@ import { ThemedText } from '@components/ThemedText';
 
 export default function CouponScreen() {
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.content}>
         <ThemedText style={styles.title}>쿠폰관리</ThemedText>
         <ThemedText style={styles.subtitle}>쿠폰을 관리하는 화면입니다.</ThemedText>
       </View>
-      <View style={{ height: 100 }} />
+      <View style={{ height: 20 }} />
     </SafeAreaView>
   );
 }
