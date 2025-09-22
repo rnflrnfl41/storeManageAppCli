@@ -106,6 +106,11 @@ export const useSalesData = () => {
       return;
     }
 
+    // 강제 새로고침인 경우 첫 페이지부터 다시 로딩
+    if (forceRefresh) {
+      page = 1;
+    }
+
     try {
       setLoading('list', true);
       const data = await salesService.getSalesList({ date, page, limit: 5 });
