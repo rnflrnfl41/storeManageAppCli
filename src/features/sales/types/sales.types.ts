@@ -27,7 +27,9 @@ export interface Service {
 export interface Sales {
   memo: string;
   visitDate: string;
+  visitTime: string;
   customerId: number;
+  customerName: string;
   totalServiceAmount: number;
   discountAmount: number;
   finalServiceAmount: number;
@@ -38,6 +40,7 @@ export interface Sales {
   paymentMethod: string;
   usedPoint: number;
   usedCouponId: string;
+  usedCouponName: string;
 }
 
 // View 데이터 타입

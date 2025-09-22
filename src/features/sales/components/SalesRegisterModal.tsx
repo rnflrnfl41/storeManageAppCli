@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Modal, View, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { Modal, View, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
 import { styles } from '@shared/styles/Sales';
@@ -22,11 +23,17 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>('card');
   const [customerSearchVisible, setCustomerSearchVisible] = useState(false);
   const [visitDate, setVisitDate] = useState<string>(new Date().toISOString().split('T')[0]); // 기본값: 오늘 날짜
+  const [visitTime, setVisitTime] = useState<string>(new Date().toTimeString().slice(0, 5)); // 기본값: 현재 시간
   const [calendarVisible, setCalendarVisible] = useState(false);
+  const [timePickerVisible, setTimePickerVisible] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!visible) {
+    if (visible) {
+      // 모달이 열릴 때 현재 시간으로 초기화
+      setVisitDate(new Date().toISOString().split('T')[0]);
+      setVisitTime(new Date().toTimeString().slice(0, 5));
+    } else {
       // 모달이 닫힐 때 초기화
       setSelectedCustomer(null);
       setSelectedServices([]);
@@ -35,8 +42,8 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
       setUsedPoints(0);
       setUsedPointsText('');
       setPaymentMethod('card');
-      setVisitDate(new Date().toISOString().split('T')[0]); // 오늘 날짜로 초기화
       setCalendarVisible(false);
+      setTimePickerVisible(false);
       setValidationErrors([]);
     }
   }, [visible]);
@@ -93,6 +100,17 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
     setUsedPointsText('');
   };
 
+  const handleTimeChange = (event: any, selectedTime?: Date) => {
+    if (Platform.OS === 'android') {
+      setTimePickerVisible(false);
+    }
+    
+    if (selectedTime) {
+      const timeString = selectedTime.toTimeString().slice(0, 5);
+      setVisitTime(timeString);
+    }
+  };
+
   const validateForm = (): boolean => {
     const errors: string[] = [];
 
@@ -138,6 +156,7 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
       totalAmount: totalServiceAmount,
       finalAmount,
       visitDate,
+      visitTime,
     });
   };
   return (
@@ -148,10 +167,19 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalScrollView}>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{flexGrow: 1}}>
-            <View style={styles.modalContent}>
+        <View style={styles.modalContainer}>
+          {/* 고정 헤더 */}
+          <View style={styles.modalHeader}>
             <ThemedText style={styles.modalTitle}>매출 등록</ThemedText>
+          </View>
+          
+          {/* 스크롤 가능한 내용 */}
+          <ScrollView 
+            style={styles.modalScrollView}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.modalScrollContent}
+          >
+            <View style={styles.modalContent}>
 
             <View style={styles.inputContainer}>
               <ThemedText style={styles.inputLabel}>고객 선택</ThemedText>
@@ -195,6 +223,17 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
                 <View style={styles.customerSelectContent}>
                   <Ionicons name="calendar-outline" size={20} color="#4A90E2" />
                   <ThemedText style={[styles.customerName, { marginLeft: 12, fontWeight: 'bold' }]}>{visitDate}</ThemedText>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputContainer}>
+              <ThemedText style={styles.inputLabel}>방문 시간</ThemedText>
+              <TouchableOpacity style={styles.customerSelectButton} onPress={() => setTimePickerVisible(true)}>
+                <View style={styles.customerSelectContent}>
+                  <Ionicons name="time-outline" size={20} color="#4A90E2" />
+                  <ThemedText style={[styles.customerName, { marginLeft: 12, fontWeight: 'bold' }]}>{visitTime}</ThemedText>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
               </TouchableOpacity>
@@ -412,15 +451,18 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
                 ))}
               </View>
             )}
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-                <ThemedText style={styles.cancelButtonText}>취소</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.confirmButton} onPress={handleSubmit}>
-                <ThemedText style={styles.confirmButtonText}>등록</ThemedText>
-              </TouchableOpacity>
             </View>
+          </ScrollView>
+          
+          {/* 고정 하단 버튼 */}
+          <View style={styles.modalButtons}>
+            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+              <ThemedText style={styles.cancelButtonText}>취소</ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.confirmButton} onPress={handleSubmit}>
+              <ThemedText style={styles.confirmButtonText}>등록</ThemedText>
+            </TouchableOpacity>
+          </View>
             <CustomerSearchModal
               visible={customerSearchVisible}
               onSelectCustomer={(c: Customer) => { 
@@ -455,8 +497,16 @@ const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
               }}
               title="방문 날짜 선택"
             />
-            </View>
-          </ScrollView>
+
+            {timePickerVisible && (
+              <DateTimePicker
+                value={new Date(`2000-01-01T${visitTime}:00`)}
+                mode="time"
+                is24Hour={true}
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleTimeChange}
+              />
+            )}
         </View>
       </View>
     </Modal>

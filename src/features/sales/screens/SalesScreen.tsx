@@ -62,12 +62,15 @@ export default function SalesScreen() {
     totalAmount: number;
     finalAmount: number;
     visitDate: string;
+    visitTime: string;
   }) => {
     // 실제 저장용 Sales 데이터 생성
     const salesData: Sales = {
       memo: payload.services.map(s => s.name).join(', '), // 서비스 이름들을 메모로 사용
-      visitDate: payload.visitDate, // 선택된 날짜 사용
+      visitDate: payload.visitDate,
+      visitTime: payload.visitTime,
       customerId: payload.customer === 'guest' ? 0 : parseInt(payload.customer?.id || '0'),
+      customerName: payload.customer === 'guest' ? 'guest' : payload.customer?.name || '',
       totalServiceAmount: payload.totalAmount,
       discountAmount: Math.max(0, payload.totalAmount - payload.finalAmount),
       finalServiceAmount: payload.finalAmount,
@@ -77,7 +80,8 @@ export default function SalesScreen() {
       })),
       paymentMethod: payload.paymentMethod,
       usedPoint: payload.usedPoints,
-      usedCouponId: payload.coupon?.id || ''
+      usedCouponId: payload.coupon?.id || '',
+      usedCouponName: payload.coupon?.name || ''
     };
 
     try {
@@ -88,6 +92,7 @@ export default function SalesScreen() {
       await Promise.all([
         loadSummaryData(payload.visitDate),
         loadSalesList(payload.visitDate, 1, true), // 강제 새로고침
+        loadChartData('daily'), // 일별 차트도 새로고침
       ]);
       
       // 모달 닫기
@@ -298,7 +303,19 @@ export default function SalesScreen() {
   const monthSales = getMonthSales();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* 고정 헤더 */}
+      <View style={styles.header}>
+        <ThemedText style={styles.title}>매출관리</ThemedText>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setModalVisible(true)}
+        >
+          <ThemedText style={styles.addButtonText}>+ 매출등록</ThemedText>
+        </TouchableOpacity>
+      </View>
+
+      {/* 스크롤 가능한 내용 */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -312,16 +329,6 @@ export default function SalesScreen() {
           />
         }
       >
-        {/* 헤더 */}
-        <View style={styles.header}>
-          <ThemedText style={styles.title}>매출관리</ThemedText>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setModalVisible(true)}
-          >
-            <ThemedText style={styles.addButtonText}>+ 매출등록</ThemedText>
-          </TouchableOpacity>
-        </View>
 
         {/* 매출 요약 */}
         <View style={styles.summaryContainer}>

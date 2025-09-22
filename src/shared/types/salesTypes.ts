@@ -70,6 +70,7 @@ export interface SalesRegisterModalProps {
     totalAmount: number;
     finalAmount: number;
     visitDate: string;
+    visitTime: string;
   }) => Promise<void>;
 }
 
