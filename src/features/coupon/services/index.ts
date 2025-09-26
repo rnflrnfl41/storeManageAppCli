@@ -10,7 +10,7 @@ const mockCoupons: Coupon[] = [
     type: 'percent',
     createdDate: '2025-01-15',
     expiryDate: '2025-12-31',
-    isUsed: false,
+    used: false,
     customerId: '1',
     customerName: '김철수',
   },
@@ -21,7 +21,7 @@ const mockCoupons: Coupon[] = [
     type: 'fixed',
     createdDate: '2025-01-10',
     expiryDate: '2025-06-30',
-    isUsed: true,
+    used: true,
     usedDate: '2025-02-15',
     customerId: '1',
     customerName: '김철수',
@@ -33,7 +33,7 @@ const mockCoupons: Coupon[] = [
     type: 'percent',
     createdDate: '2025-01-20',
     expiryDate: '2025-03-31',
-    isUsed: false,
+    used: false,
     customerId: '2',
     customerName: '이영희',
   },
@@ -44,7 +44,7 @@ const mockCoupons: Coupon[] = [
     type: 'fixed',
     createdDate: '2025-01-25',
     expiryDate: '2025-08-31',
-    isUsed: false,
+    used: false,
     customerId: '1',
     customerName: '김철수',
   },
@@ -55,7 +55,7 @@ const mockCoupons: Coupon[] = [
     type: 'percent',
     createdDate: '2025-01-28',
     expiryDate: '2025-05-31',
-    isUsed: false,
+    used: false,
     customerId: '2',
     customerName: '이영희',
   },
@@ -66,7 +66,7 @@ const mockCoupons: Coupon[] = [
     type: 'fixed',
     createdDate: '2025-01-30',
     expiryDate: '2025-07-31',
-    isUsed: false,
+    used: false,
     customerId: '3',
     customerName: '박민수',
   },
@@ -77,7 +77,7 @@ const mockCoupons: Coupon[] = [
     type: 'percent',
     createdDate: '2025-02-01',
     expiryDate: '2025-09-30',
-    isUsed: false,
+    used: false,
     customerId: '2',
     customerName: '이영희',
   },
@@ -88,7 +88,7 @@ const mockCoupons: Coupon[] = [
     type: 'fixed',
     createdDate: '2025-02-03',
     expiryDate: '2025-04-30',
-    isUsed: true,
+    used: true,
     usedDate: '2025-02-10',
     customerId: '3',
     customerName: '박민수',
@@ -100,7 +100,7 @@ const mockCoupons: Coupon[] = [
     type: 'percent',
     createdDate: '2025-02-05',
     expiryDate: '2025-06-30',
-    isUsed: false,
+    used: false,
     customerId: '1',
     customerName: '김철수',
   },
@@ -111,7 +111,7 @@ const mockCoupons: Coupon[] = [
     type: 'fixed',
     createdDate: '2025-02-08',
     expiryDate: '2025-10-31',
-    isUsed: false,
+    used: false,
     customerId: '3',
     customerName: '박민수',
   },
@@ -122,7 +122,7 @@ const mockCoupons: Coupon[] = [
     type: 'percent',
     createdDate: '2025-01-12',
     expiryDate: '2025-02-28',
-    isUsed: false,
+    used: false,
     customerId: '2',
     customerName: '이영희',
   },
@@ -133,7 +133,7 @@ const mockCoupons: Coupon[] = [
     type: 'fixed',
     createdDate: '2025-02-10',
     expiryDate: '2025-12-31',
-    isUsed: false,
+    used: false,
     customerId: '1',
     customerName: '김철수',
   },
@@ -182,7 +182,7 @@ export const couponService = {
         id: Date.now().toString(),
         ...couponData,
         createdDate: new Date().toISOString().split('T')[0],
-        isUsed: false,
+        used: false,
         customerName: '고객명', // 실제로는 customerId로 조회해야 함
       };
       
@@ -220,7 +220,7 @@ export const couponService = {
       // 임시로 mock 데이터 업데이트
       const coupon = mockCoupons.find(c => c.id === couponId);
       if (coupon) {
-        coupon.isUsed = true;
+        coupon.used = true;
         coupon.usedDate = new Date().toISOString().split('T')[0];
       }
     } catch (error) {
