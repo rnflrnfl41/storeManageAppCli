@@ -5,7 +5,7 @@ export interface Coupon {
   type: 'percent' | 'fixed';
   createdDate: string;
   expiryDate: string;
-  used: boolean;
+  isUsed: boolean;
   usedDate?: string;
   customerId: string;
   customerName: string;
