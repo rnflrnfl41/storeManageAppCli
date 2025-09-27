@@ -211,21 +211,4 @@ export const couponService = {
     }
   },
 
-  // 쿠폰 사용
-  async useCoupon(couponId: string): Promise<void> {
-    try {
-      // 실제 API 호출
-      // await apiClient.put(`/coupons/${couponId}/use`);
-      
-      // 임시로 mock 데이터 업데이트
-      const coupon = mockCoupons.find(c => c.id === couponId);
-      if (coupon) {
-        coupon.used = true;
-        coupon.usedDate = new Date().toISOString().split('T')[0];
-      }
-    } catch (error) {
-      console.error('쿠폰 사용 실패:', error);
-      throw error;
-    }
-  },
 };
