@@ -144,7 +144,7 @@ export const couponService = {
   async getCouponsByCustomer(customerId: string): Promise<Coupon[]> {
     try {
       // 실제 API 호출
-      // const response = await apiClient.get(`/coupon/${customerId}`);
+      // const response = await apiClient.get(`/benefit/coupon/${customerId}`);
       // return response.data;
       
       // 임시로 mock 데이터 반환
@@ -159,7 +159,7 @@ export const couponService = {
   async getAllCoupons(): Promise<Coupon[]> {
     try {
       // 실제 API 호출
-      // const response = await apiClient.get('/coupons');
+      // const response = await apiClient.get('/benefit/coupon/all');
       // return response.data;
       
       // 임시로 mock 데이터 반환
@@ -174,7 +174,7 @@ export const couponService = {
   async createCoupon(couponData: CouponForm): Promise<Coupon> {
     try {
       // 실제 API 호출
-      // const response = await apiClient.post('/coupons', couponData);
+      // const response = await apiClient.post('/benefit/coupon', couponData);
       // return response.data;
       
       // 임시로 mock 데이터 생성
@@ -198,7 +198,7 @@ export const couponService = {
   async deleteCoupon(couponId: string): Promise<void> {
     try {
       // 실제 API 호출
-      // await apiClient.delete(`/coupons/${couponId}`);
+      // await apiClient.delete(`/coupon/${couponId}`);
       
       // 임시로 mock 데이터에서 삭제
       const index = mockCoupons.findIndex(coupon => coupon.id === couponId);
