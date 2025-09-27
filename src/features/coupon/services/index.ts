@@ -144,7 +144,7 @@ export const couponService = {
   async getCouponsByCustomer(customerId: string): Promise<Coupon[]> {
     try {
       // 실제 API 호출
-      // const response = await apiClient.get(`/customers/${customerId}/coupons`);
+      // const response = await apiClient.get(`/coupon/${customerId}`);
       // return response.data;
       
       // 임시로 mock 데이터 반환
