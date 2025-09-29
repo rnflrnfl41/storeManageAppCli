@@ -12,6 +12,7 @@ import {
 import { CouponModalProps } from '../types';
 import { colors, typography, spacing, borderRadius } from '@shared/styles/common';
 import { CustomTextInput } from '@shared/components/CustomTextInput';
+import { CalendarModal } from '@shared/components/CalendarModal';
 
 export default function CouponModal({
   visible,
@@ -27,15 +28,17 @@ export default function CouponModal({
     expiryDate: '',
   });
   const [loading, setLoading] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   useEffect(() => {
     if (visible) {
-      // 모달이 열릴 때 폼 초기화
+      // 모달이 열릴 때 폼 초기화 및 기본 만료일 설정 (오늘 + 3개월)
+      const defaultExpiryDate = getDefaultExpiryDate();
       setFormData({
         name: '',
         amount: '',
         type: 'fixed',
-        expiryDate: '',
+        expiryDate: defaultExpiryDate,
       });
     }
   }, [visible]);
@@ -61,6 +64,11 @@ export default function CouponModal({
       return;
     }
 
+    if (!customerName) {
+      Alert.alert('오류', '고객명이 없습니다.');
+      return;
+    }
+
     const amount = parseFloat(formData.amount);
     if (isNaN(amount) || amount <= 0) {
       Alert.alert('오류', '올바른 할인 금액을 입력해주세요.');
@@ -80,6 +88,7 @@ export default function CouponModal({
         type: formData.type,
         expiryDate: formData.expiryDate,
         customerId,
+        customerName,
       });
 
       if (success) {
@@ -95,6 +104,31 @@ export default function CouponModal({
   const getTodayDate = () => {
     const today = new Date();
     return today.toISOString().split('T')[0];
+  };
+
+  const getDefaultExpiryDate = () => {
+    const today = new Date();
+    const threeMonthsLater = new Date(today);
+    threeMonthsLater.setMonth(today.getMonth() + 3);
+    return threeMonthsLater.toISOString().split('T')[0];
+  };
+
+  const handleDateSelect = (dateString: string) => {
+    setFormData(prev => ({ ...prev, expiryDate: dateString }));
+    setShowCalendar(false);
+  };
+
+  const handleQuickDateSelect = (months: number) => {
+    const currentDate = formData.expiryDate ? new Date(formData.expiryDate) : new Date();
+    const newDate = new Date(currentDate);
+    newDate.setMonth(currentDate.getMonth() + months);
+    setFormData(prev => ({ ...prev, expiryDate: newDate.toISOString().split('T')[0] }));
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
   };
 
   return (
@@ -195,15 +229,57 @@ export default function CouponModal({
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>만료일 *</Text>
-            <CustomTextInput
-              value={formData.expiryDate}
-              onChangeText={(text) => setFormData(prev => ({ ...prev, expiryDate: text }))}
-              placeholder="YYYY-MM-DD"
-              style={styles.input}
-            />
+            <TouchableOpacity
+              style={styles.dateInput}
+              onPress={() => setShowCalendar(true)}
+            >
+              <Text style={[
+                styles.dateInputText,
+                !formData.expiryDate && styles.dateInputPlaceholder
+              ]}>
+                {formData.expiryDate ? formatDate(formData.expiryDate) : '날짜를 선택하세요'}
+              </Text>
+            </TouchableOpacity>
+            
+            <View style={styles.quickDateContainer}>
+              <View style={styles.quickDateButtons}>
+                <TouchableOpacity
+                  style={styles.quickDateButton}
+                  onPress={() => handleQuickDateSelect(-3)}
+                >
+                  <Text style={styles.quickDateButtonText}>-3개월</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.quickDateButton}
+                  onPress={() => handleQuickDateSelect(-1)}
+                >
+                  <Text style={styles.quickDateButtonText}>-1개월</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.quickDateButton}
+                  onPress={() => handleQuickDateSelect(1)}
+                >
+                  <Text style={styles.quickDateButtonText}>+1개월</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.quickDateButton}
+                  onPress={() => handleQuickDateSelect(3)}
+                >
+                  <Text style={styles.quickDateButtonText}>+3개월</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         </ScrollView>
       </View>
+
+      <CalendarModal
+        visible={showCalendar}
+        currentDate={formData.expiryDate || getTodayDate()}
+        onClose={() => setShowCalendar(false)}
+        onSelect={handleDateSelect}
+        title="만료일 선택"
+      />
     </Modal>
   );
 }
@@ -330,5 +406,43 @@ const styles = StyleSheet.create({
     ...typography.body1,
     color: colors.textSecondary,
     paddingRight: spacing.md,
+  },
+  dateInput: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.lightGray,
+    borderRadius: borderRadius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    justifyContent: 'center',
+  },
+  dateInputText: {
+    ...typography.body1,
+    color: colors.textPrimary,
+  },
+  dateInputPlaceholder: {
+    color: colors.textSecondary,
+  },
+  quickDateContainer: {
+    marginTop: spacing.sm,
+  },
+  quickDateButtons: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  quickDateButton: {
+    flex: 1,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.lightGray,
+    borderRadius: borderRadius.sm,
+    alignItems: 'center',
+  },
+  quickDateButtonText: {
+    ...typography.caption,
+    color: colors.textPrimary,
+    fontWeight: '500',
   },
 });
