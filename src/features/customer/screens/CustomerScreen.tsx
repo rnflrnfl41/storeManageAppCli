@@ -8,7 +8,7 @@ import CustomerDetailModal from '../components/CustomerDetailModal';
 import { TextInput } from '@components/CustomTextInput';
 import { axiosInstance } from '@services/apiClient';
 import { showSuccess, showError, showConfirm } from '@shared/utils/alertUtils';
-import { CustomerBasic } from '@shared/types/customerTypes';
+import { CustomerBasic } from '../types/customerTypes';
 
 export default function CustomerScreen() {
   const [customers, setCustomers] = useState<CustomerBasic[]>([]);
@@ -84,7 +84,7 @@ export default function CustomerScreen() {
     setSelectedCustomer(undefined);
   };
 
-  const deleteCustomer = async (id: string) => {
+  const deleteCustomer = async (id: number) => {
     try {
       const response = await axiosInstance.delete(`/customer/${id}`);
       if (response.status === 200 || response.status === 204) {
@@ -95,7 +95,7 @@ export default function CustomerScreen() {
     }
   };
 
-  const handleDeleteCustomer = async (id: string) => {
+  const handleDeleteCustomer = async (id: number) => {
     const confirmed = await showConfirm('정말 삭제하시겠습니까?', {
       title: '고객 삭제',
       confirmButtonText: '삭제',

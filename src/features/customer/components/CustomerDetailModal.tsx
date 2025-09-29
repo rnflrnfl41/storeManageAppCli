@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Modal, ScrollView, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
-import { CustomerDetail, CustomerDetailModalProps, ServiceHistory, ServiceHistoryDto, CustomerBenefitResponse, Coupon } from '@shared/types/customerTypes';
+import { CustomerDetail, CustomerDetailModalProps, ServiceHistory, ServiceHistoryDto, CustomerBenefitResponse, Coupon } from '../types/customerTypes';
 import { axiosInstance } from '@services/apiClient';
 
 export default function CustomerDetailModal({ visible, customer, onClose }: CustomerDetailModalProps) {
