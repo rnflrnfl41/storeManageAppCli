@@ -9,7 +9,7 @@ import {
   TextInput,
 } from 'react-native';
 import { colors, typography, spacing, borderRadius, shadows } from '@shared/styles/common';
-import { CustomerBasic } from '@shared/types/customerTypes';
+import { CustomerBasic } from '../../customer/types/customerTypes';
 
 interface CustomerSelectModalProps {
   visible: boolean;
@@ -40,7 +40,7 @@ export default function CustomerSelectModal({
   }, [searchText, customers]);
 
   const handleSelect = (customer: CustomerBasic) => {
-    if (customer.id === 'all') {
+    if (customer.id === 0) {
       onSelect(null);
     } else {
       onSelect(customer);
@@ -95,7 +95,7 @@ export default function CustomerSelectModal({
 
         <FlatList
           data={filteredCustomers}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()}
           renderItem={renderCustomer}
           style={styles.list}
           showsVerticalScrollIndicator={false}

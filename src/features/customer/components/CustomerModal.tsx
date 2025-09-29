@@ -3,7 +3,7 @@ import { View, StyleSheet, Modal, TouchableOpacity, Alert } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
 import { TextInput } from '@components/CustomTextInput';
-import { CustomerModalProps } from '@shared/types/customerTypes';
+import { CustomerModalProps } from '../types/customerTypes';
 
 export default function CustomerModal({ visible, customer, onClose, onSave }: CustomerModalProps) {
   const [name, setName] = useState('');

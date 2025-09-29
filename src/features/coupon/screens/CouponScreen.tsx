@@ -8,21 +8,21 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Coupon, CouponFilter } from '../types';
-import { CustomerBasic } from '@shared/types/customerTypes';
+import { Coupon, CouponFilter, CouponForm } from '../types';
+import { CustomerBasic } from '../../customer/types/customerTypes';
 import { couponService } from '../services';
+import { axiosInstance } from '@services/apiClient';
 import CouponModal from '../components/CouponModal';
 import CouponCard from '../components/CouponCard';
 import CustomerSelectModal from '../components/CustomerSelectModal';
 import { couponStyles as styles } from '../styles';
-import { colors, spacing } from '@shared/styles/common';
 
 export default function CouponScreen() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [filteredCoupons, setFilteredCoupons] = useState<Coupon[]>([]);
   const [customers, setCustomers] = useState<CustomerBasic[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerBasic | null>(null);
-  const [filter, setFilter] = useState<CouponFilter>({ status: 'all' });
+  const [filter, setFilter] = useState<CouponFilter>({ status: 'all', customerId: 0 });
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showCouponModal, setShowCouponModal] = useState(false);
@@ -48,16 +48,10 @@ export default function CouponScreen() {
   const loadData = async () => {
     setLoading(true);
     try {
-      // 실제로는 고객 목록도 API에서 가져와야 함
-      const mockCustomers: CustomerBasic[] = [
-        { id: '1', name: '김철수', phone: '010-1234-5678', lastVisit: '2024-01-15' },
-        { id: '2', name: '이영희', phone: '010-2345-6789', lastVisit: '2024-01-20' },
-        { id: '3', name: '박민수', phone: '010-3456-7890', lastVisit: '2024-01-18' },
-        { id: '4', name: '최지영', phone: '010-4567-8901', lastVisit: '2024-02-01' },
-        { id: '5', name: '정수현', phone: '010-5678-9012', lastVisit: '2024-02-05' },
-        { id: '6', name: '한민호', phone: '010-6789-0123', lastVisit: '2024-02-08' },
-      ];
-      setCustomers(mockCustomers);
+      // 고객 목록 API 호출
+      const customersResponse = await axiosInstance.get('/customer/all');
+      console.log('고객 목록:', customersResponse.data);
+      setCustomers(customersResponse.data);
 
       const allCoupons = await couponService.getAllCoupons();
       setCoupons(allCoupons);
@@ -106,8 +100,9 @@ export default function CouponScreen() {
     setShowCustomerModal(true);
   };
 
-  const handleSaveCoupon = async (couponData: any) => {
+  const handleSaveCoupon = async (couponData: CouponForm) => {
     try {
+      console.log(couponData);
       await couponService.createCoupon(couponData);
       await loadData();
       return true;
@@ -127,7 +122,7 @@ export default function CouponScreen() {
 
 
   const handleSelectCustomer = (customer: CustomerBasic | null) => {
-    if (customer) {
+    if (customer && customer.id !== 0) {
       setSelectedCustomer(customer);
       setShowCouponModal(true);
     }
@@ -257,9 +252,9 @@ export default function CouponScreen() {
       </View>
 
       <CouponModal
-        visible={showCouponModal}
-        customerId={selectedCustomer?.id}
-        customerName={selectedCustomer?.name}
+        visible={showCouponModal && !!selectedCustomer && selectedCustomer.id !== 0}
+        customerId={selectedCustomer?.id || 0}
+        customerName={selectedCustomer?.name || ''}
         onClose={() => setShowCouponModal(false)}
         onSave={handleSaveCoupon}
       />
@@ -273,7 +268,7 @@ export default function CouponScreen() {
 
       <CustomerSelectModal
         visible={showCustomerFilter}
-        customers={[{ id: 'all', name: '전체 고객', phone: '', lastVisit: null }, ...customers]}
+        customers={[{ id: 0, name: '전체 고객', phone: '', lastVisit: null }, ...customers]}
         onClose={() => setShowCustomerFilter(false)}
         onSelect={handleCustomerFilter}
       />
