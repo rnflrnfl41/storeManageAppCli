@@ -1,5 +1,5 @@
 export interface CustomerBasic {
-  id: string;
+  id: number;
   name: string;
   phone: string;
   lastVisit: string | null;
