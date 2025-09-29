@@ -7,7 +7,7 @@ export interface Coupon {
   expiryDate: string;
   used: boolean;
   usedDate?: string;
-  customerId: string;
+  customerId: number;
   customerName: string;
 }
 
@@ -16,18 +16,19 @@ export interface CouponForm {
   amount: number;
   type: 'percent' | 'fixed';
   expiryDate: string;
-  customerId: string;
+  customerId: number;
+  customerName: string;
 }
 
 export interface CouponFilter {
   status: 'all' | 'active' | 'used' | 'expired';
-  customerId?: string;
+  customerId: number;
 }
 
 export interface CouponModalProps {
   visible: boolean;
-  customerId?: string;
-  customerName?: string;
+  customerId: number;
+  customerName: string;
   onClose: () => void;
   onSave: (coupon: CouponForm) => Promise<boolean>;
 }
