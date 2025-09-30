@@ -120,12 +120,8 @@ export default function SalesScreen() {
     if (confirmed) {
       try {
         await deleteSalesFromAPI(id, selectedDate);
-        
-        // 요약 데이터도 새로고침
-        const today = new Date().toISOString().split('T')[0];
-        if (selectedDate === today) {
-          await loadSummaryData(today);
-        }
+        // 차트 데이터 새로고침 (현재 보기 타입)
+        await loadChartData(viewType);
       } catch (error) {
         console.error('매출 삭제 실패:', error);
       }
