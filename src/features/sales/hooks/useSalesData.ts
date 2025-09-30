@@ -192,7 +192,7 @@ export const useSalesData = () => {
         },
       }));
 
-      // 요약 데이터도 업데이트
+      // 삭제 성공 후 요약 데이터 새로고침 (오늘 날짜일 때만)
       if (state.summary) {
         const today = new Date().toISOString().split('T')[0];
         if (date === today) {
