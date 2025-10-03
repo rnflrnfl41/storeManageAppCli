@@ -1,4 +1,7 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const isTablet = screenWidth >= 768;
 
 // 공통 캘린더 테마
 export const calendarTheme = {
@@ -16,12 +19,8 @@ export const calendarTheme = {
   disabledArrowColor: '#d9e1e8',
   monthTextColor: '#2d4150',
   indicatorColor: '#007AFF',
-  textDayFontWeight: '500',
+  textMonthFontSize: 20,
   textMonthFontWeight: '600',
-  textDayHeaderFontWeight: '500',
-  textDayFontSize: 20,
-  textMonthFontSize: 24,
-  textDayHeaderFontSize: 18
 } as any;
 
 export const calendarStyles = StyleSheet.create({
@@ -34,8 +33,9 @@ export const calendarStyles = StyleSheet.create({
   calendarModalContent: {
     backgroundColor: 'white',
     borderRadius: 16,
-    margin: 20,
-    padding: 20,
+    margin: isTablet ? 40 : 20,
+    padding: isTablet ? 32 : 20,
+    width: isTablet ? Math.min(screenWidth * 0.7, 600) : undefined,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
@@ -49,14 +49,14 @@ export const calendarStyles = StyleSheet.create({
     marginBottom: 16,
   },
   calendarModalTitle: {
-    fontSize: 18,
+    fontSize: isTablet ? 22 : 18,
     fontWeight: '600',
     color: '#1A1A1A',
   },
   calendarCloseButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: isTablet ? 28 : 24,
+    height: isTablet ? 28 : 24,
+    borderRadius: isTablet ? 14 : 12,
     backgroundColor: '#F8F9FA',
     justifyContent: 'center',
     alignItems: 'center',
