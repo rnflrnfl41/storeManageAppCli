@@ -1,9 +1,12 @@
 import React from 'react';
-import { Modal, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { Modal, TouchableOpacity, View, StyleSheet, Dimensions } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Calendar } from 'react-native-calendars';
 import { ThemedText } from '@components/ThemedText';
 import { calendarTheme, calendarStyles } from '@shared/styles/CalendarStyles';
+
+const { width: screenWidth } = Dimensions.get('window');
+const isTablet = screenWidth >= 768;
 
 interface CalendarModalProps {
   visible: boolean;
@@ -48,7 +51,7 @@ export function CalendarModal({
               style={calendarStyles.calendarCloseButton}
               onPress={onClose}
             >
-              <Ionicons name="close" size={28} color="#8E8E93" />
+              <Ionicons name="close" size={isTablet ? 20 : 18} color="#8E8E93" />
             </TouchableOpacity>
           </View>
           <Calendar

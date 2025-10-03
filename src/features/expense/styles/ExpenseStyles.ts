@@ -1,0 +1,343 @@
+import { StyleSheet, Dimensions } from 'react-native';
+
+const screenWidth = Dimensions.get('window').width;
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+    zIndex: 1000,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#212529',
+  },
+  addButton: {
+    backgroundColor: '#FF3B30',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  addButtonText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  // 요약 카드 스타일
+  summaryContainer: {
+    flexDirection: 'row',
+    padding: 20,
+    gap: 12,
+  },
+  summaryCard: {
+    flex: 1,
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginBottom: 8,
+  },
+  summaryAmount: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FF3B30',
+    marginBottom: 4,
+  },
+  summaryCount: {
+    fontSize: 12,
+    color: '#8E8E93',
+  },
+  // 차트 스타일
+  chartContainer: {
+    backgroundColor: '#ffffff',
+    margin: 20,
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  chartHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  chartTitleContainer: {
+    alignItems: 'flex-start',
+  },
+  chartTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#212529',
+  },
+  chartDateRange: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginTop: 2,
+  },
+  chartToggle: {
+    flexDirection: 'row',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 2,
+  },
+  toggleButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  activeToggle: {
+    backgroundColor: '#FF3B30',
+  },
+  toggleText: {
+    fontSize: 14,
+    color: '#6c757d',
+  },
+  activeToggleText: {
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  chart: {
+    marginVertical: 8,
+    borderRadius: 16,
+  },
+  chartHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    gap: 4,
+  },
+  chartHintText: {
+    fontSize: 12,
+    color: '#8E8E93',
+  },
+  tooltip: {
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    borderRadius: 8,
+    padding: 12,
+    minWidth: 120,
+    position: 'absolute',
+    top: 20,
+    right: 20,
+  },
+  tooltipContent: {
+    alignItems: 'center',
+  },
+  tooltipTitle: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  tooltipAmount: {
+    color: '#FF3B30',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  tooltipCount: {
+    color: 'white',
+    fontSize: 12,
+  },
+  // 리스트 스타일
+  listContainer: {
+    backgroundColor: '#ffffff',
+    margin: 20,
+    marginTop: 0,
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  dateSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    paddingHorizontal: 8,
+  },
+  dateNavButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFF5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dateDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minWidth: 180,
+    justifyContent: 'center',
+  },
+  dateInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  selectedDateMain: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#212529',
+    letterSpacing: 0.3,
+  },
+  todayBadge: {
+    backgroundColor: '#FFF5F5',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderWidth: 0.5,
+    borderColor: '#FF3B30',
+  },
+  todayText: {
+    fontSize: 12,
+    color: '#FF3B30',
+    fontWeight: '500',
+  },
+  dayStats: {
+    backgroundColor: '#f8f9fa',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  dayStatsText: {
+    fontSize: 14,
+    color: '#495057',
+    fontWeight: '500',
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#6c757d',
+  },
+  // 지출 아이템 스타일
+  expenseItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  expenseInfo: {
+    flex: 1,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  expenseAmount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 4,
+  },
+  expenseDescription: {
+    fontSize: 14,
+    color: '#495057',
+    marginBottom: 4,
+  },
+  expenseMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    gap: 6,
+  },
+  expenseTime: {
+    fontSize: 14,
+    color: '#6c757d',
+    fontWeight: '500',
+  },
+  categoryName: {
+    fontSize: 14,
+    color: '#6c757d',
+  },
+  categoryIcon: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  categoryText: {
+    fontSize: 12,
+    color: '#6c757d',
+    fontWeight: '500',
+  },
+  paymentBadgeSmall: {
+    marginLeft: 8,
+    padding: 2,
+  },
+  expenseActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  deleteButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFF0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  showMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F2F2F7',
+  },
+  showMoreText: {
+    fontSize: 14,
+    color: '#007AFF',
+    marginRight: 8,
+  },
+});
