@@ -1,6 +1,3 @@
-// Expense Feature Types
-
-// 지출 카테고리 타입
 export interface ExpenseCategory {
   id: string;
   name: string;
@@ -8,7 +5,6 @@ export interface ExpenseCategory {
   color: string;
 }
 
-// 실제 저장용 Expense 타입
 export interface Expense {
   memo: string;
   expenseDate: string;
@@ -17,18 +13,15 @@ export interface Expense {
   amount: number;
 }
 
-// View 데이터 타입
+// 지출 데이터 타입 (서버/클라이언트 공통)
 export interface ExpenseData {
   id: number;
   amount: number;
   memo: string;
-  date: string;
+  expenseDate: string;
   categoryName: string;
-  categoryIcon: string;
-  categoryColor: string;
 }
 
-// Modal Props Types
 export interface ExpenseRegisterModalProps {
   visible: boolean;
   onClose: () => void;
@@ -47,7 +40,6 @@ export interface ExpenseDetailModalProps {
   onDelete: (id: number) => void;
 }
 
-// API 응답 타입들
 export interface ExpenseSummaryResponse {
   today: {
     amount: number;
@@ -65,13 +57,15 @@ export interface ExpenseChartResponse {
   counts: number[];
 }
 
+// 지출 목록 응답 타입 (서버/클라이언트 공통)
 export interface ExpenseListResponse {
-  expenses: ExpenseData[];
-  pagination: {
-    page: number;
-    total: number;
-    totalPages: number;
+  content: ExpenseData[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
   };
+  totalElements: number;
+  totalPages: number;
 }
 
 export interface ExpenseListParams {
@@ -109,14 +103,26 @@ export interface ExpenseDataState {
   loading: LoadingState;
 }
 
-// 기본 지출 카테고리
+export interface UseExpenseDataReturn extends ExpenseDataState {
+  loadSummaryData: (date: string) => Promise<void>;
+  loadChartData: (params: ChartDataParams) => Promise<void>;
+  loadExpenseList: (params: ExpenseListParams) => Promise<void>;
+  loadMoreExpenseList: (params: ExpenseListParams) => Promise<void>;
+  deleteExpense: (id: number, date: string) => Promise<void>;
+  refreshData: (date: string) => Promise<void>;
+}
+
+// 기본 카테고리 데이터
 export const DEFAULT_EXPENSE_CATEGORIES: ExpenseCategory[] = [
-  { id: 'rent', name: '임대료', icon: 'home', color: '#FF6B6B' },
-  { id: 'utilities', name: '공과금', icon: 'flash', color: '#4ECDC4' },
-  { id: 'supplies', name: '소모품', icon: 'cube', color: '#45B7D1' },
-  { id: 'equipment', name: '장비', icon: 'construct', color: '#96CEB4' },
-  { id: 'marketing', name: '마케팅', icon: 'megaphone', color: '#FFEAA7' },
-  { id: 'maintenance', name: '유지보수', icon: 'build', color: '#DDA0DD' },
-  { id: 'insurance', name: '보험', icon: 'shield', color: '#98D8C8' },
-  { id: 'other', name: '기타', icon: 'ellipsis-horizontal', color: '#F7DC6F' },
+  { id: '1', name: '임대료', icon: 'home-outline', color: '#FF6B6B' },
+  { id: '2', name: '전기세', icon: 'flash-outline', color: '#4ECDC4' },
+  { id: '3', name: '가스비', icon: 'flame-outline', color: '#45B7D1' },
+  { id: '4', name: '인터넷', icon: 'wifi-outline', color: '#96CEB4' },
+  { id: '5', name: '소모품', icon: 'cube-outline', color: '#FFEAA7' },
+  { id: '6', name: '수리비', icon: 'construct-outline', color: '#DDA0DD' },
+  { id: '7', name: '광고비', icon: 'megaphone-outline', color: '#98D8C8' },
+  { id: '8', name: '보험료', icon: 'shield-outline', color: '#F7DC6F' },
+  { id: '9', name: '청소용품', icon: 'sparkles-outline', color: '#BB8FCE' },
+  { id: '10', name: '사무용품', icon: 'clipboard-outline', color: '#85C1E9' },
+  { id: '11', name: '기타', icon: 'ellipsis-horizontal-outline', color: '#AAB7B8' },
 ];

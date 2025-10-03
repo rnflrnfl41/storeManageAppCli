@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
-import { ExpenseDetailModalProps } from '../types/expense.types';
+import { ExpenseDetailModalProps, DEFAULT_EXPENSE_CATEGORIES } from '../types/expense.types';
 import { styles } from './ExpenseModalStyles';
 
 const screenWidth = Dimensions.get('window').width;
@@ -61,10 +61,17 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
             <View style={styles.detailRow}>
               <ThemedText style={styles.detailLabel}>카테고리</ThemedText>
               <View style={styles.categoryInfo}>
-                <View style={[styles.categoryIcon, { backgroundColor: expense.categoryColor }]}>
-                  <Ionicons name={expense.categoryIcon as any} size={20} color="white" />
-                </View>
-                <ThemedText style={styles.categoryName}>{expense.categoryName}</ThemedText>
+                {(() => {
+                  const category = DEFAULT_EXPENSE_CATEGORIES.find(cat => cat.name === expense.categoryName);
+                  return (
+                    <>
+                      <View style={[styles.categoryIcon, { backgroundColor: category?.color || '#8E8E93' }]}>
+                        <Ionicons name={category?.icon as any || 'help-circle'} size={20} color="white" />
+                      </View>
+                      <ThemedText style={styles.categoryName}>{expense.categoryName}</ThemedText>
+                    </>
+                  );
+                })()}
               </View>
             </View>
 

@@ -53,14 +53,12 @@ const generateMockExpenseData = (): ExpenseData[] => {
         '정기점검비',
         '기타비용'
       ][Math.floor(Math.random() * 15)],
-      date: date.toISOString().split('T')[0],
+      expenseDate: date.toISOString().split('T')[0],
       categoryName: category.name,
-      categoryIcon: category.icon,
-      categoryColor: category.color,
     });
   }
   
-  return expenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  return expenses.sort((a, b) => new Date(b.expenseDate).getTime() - new Date(a.expenseDate).getTime());
 };
 
 const mockSummary: ExpenseSummaryResponse = {
@@ -126,9 +124,9 @@ export default function ExpenseScreen() {
     
     // 요약 데이터 계산
     const today = new Date().toISOString().split('T')[0];
-    const todayExpenses = expenses.filter(expense => expense.date === today);
+    const todayExpenses = expenses.filter(expense => expense.expenseDate === today);
     const thisMonth = new Date().toISOString().slice(0, 7);
-    const monthExpenses = expenses.filter(expense => expense.date.startsWith(thisMonth));
+    const monthExpenses = expenses.filter(expense => expense.expenseDate.startsWith(thisMonth));
     
     setMockSummary({
       today: {
@@ -178,7 +176,7 @@ export default function ExpenseScreen() {
       // 성공 시 관련 데이터 새로고침
       await Promise.all([
         loadSummaryData(payload.expenseDate),
-        loadExpenseList(payload.expenseDate, 1, true), // 강제 새로고침
+        loadExpenseList({ date: payload.expenseDate, page: 0, limit: 5 }), // 강제 새로고침
         loadChartData('daily'), // 일별 차트도 새로고침
       ]);
       
@@ -215,21 +213,31 @@ export default function ExpenseScreen() {
 
   const getTodayExpenses = () => {
     const today = new Date().toISOString().split('T')[0];
-    return mockExpenses.filter(expense => expense.date === today);
+    return mockExpenses.filter(expense => expense.expenseDate === today);
   };
 
   const getSelectedDateExpenses = () => {
-    return mockExpenses.filter(expense => expense.date === selectedDate);
+    return expenseList[selectedDate]?.data || [];
   };
 
-  // 더보기 가능 여부 확인 (mock에서는 항상 false)
+  // 더보기 가능 여부 확인
   const hasMoreData = () => {
-    return false;
+    const currentData = expenseList[selectedDate];
+    if (!currentData) return false;
+    
+    const { pagination } = currentData;
+    return pagination.page < pagination.totalPages;
   };
 
   // 더보기 버튼 텍스트
   const getLoadMoreText = () => {
-    return '더보기';
+    if (loading.loadMore) return '로딩 중...';
+    
+    const currentData = expenseList[selectedDate];
+    if (!currentData) return '더보기';
+    
+    const remainingCount = currentData.pagination.total - currentData.data.length;
+    return remainingCount > 0 ? `더보기 (+${remainingCount})` : '더보기';
   };
 
   // 더보기 로딩 함수
@@ -259,7 +267,7 @@ export default function ExpenseScreen() {
     setSelectedDate(newDate);
     
     // 새로운 날짜의 데이터 로딩
-    await loadExpenseList(newDate);
+    await loadExpenseList({ date: newDate, page: 0, limit: 5 });
   };
 
   const getTotalAmount = (data: ExpenseData[]) => {
@@ -350,7 +358,7 @@ export default function ExpenseScreen() {
       await Promise.all([
         loadSummaryData(today),
         loadChartData(viewType),
-        loadExpenseList(selectedDate, 1, true),
+        loadExpenseList({ date: selectedDate, page: 0, limit: 5 }),
       ]);
     } catch (error) {
       console.error('데이터 새로고침 실패:', error);
@@ -533,10 +541,17 @@ export default function ExpenseScreen() {
                       </View>
                       <ThemedText style={styles.expenseDescription}>{item.memo}</ThemedText>
                       <View style={styles.expenseMeta}>
-                        <View style={[styles.categoryIcon, { backgroundColor: item.categoryColor }]}>
-                          <Ionicons name={item.categoryIcon as any} size={10} color="white" />
-                        </View>
-                        <ThemedText style={styles.categoryText}>{item.categoryName}</ThemedText>
+                        {(() => {
+                          const category = DEFAULT_EXPENSE_CATEGORIES.find(cat => cat.name === item.categoryName);
+                          return (
+                            <>
+                              <View style={[styles.categoryIcon, { backgroundColor: category?.color || '#8E8E93' }]}>
+                                <Ionicons name={category?.icon as any || 'help-circle'} size={10} color="white" />
+                              </View>
+                              <ThemedText style={styles.categoryText}>{item.categoryName}</ThemedText>
+                            </>
+                          );
+                        })()}
                       </View>
                     </View>
                     <View style={styles.expenseActions}>
@@ -550,6 +565,22 @@ export default function ExpenseScreen() {
                   </TouchableOpacity>
                 ))
               }
+              {hasMoreData() && (
+                <TouchableOpacity
+                  style={styles.showMoreButton}
+                  onPress={handleLoadMore}
+                  disabled={loading.loadMore}
+                >
+                  <ThemedText style={styles.showMoreText}>
+                    {loading.loadMore ? '로딩 중...' : getLoadMoreText()}
+                  </ThemedText>
+                  {loading.loadMore ? (
+                    <InlineSpinner size="small" color="#FF3B30" />
+                  ) : (
+                    <Ionicons name="chevron-down" size={20} color="#FF3B30" />
+                  )}
+                </TouchableOpacity>
+              )}
             </>
           )}
         </View>
@@ -576,7 +607,7 @@ export default function ExpenseScreen() {
           setSelectedDate(dateString);
           setCalendarVisible(false);
           // 선택된 날짜의 데이터 로드
-          await loadExpenseList(dateString);
+          await loadExpenseList({ date: dateString, page: 0, limit: 5 });
         }}
       />
     </SafeAreaView>
