@@ -337,7 +337,7 @@ export const styles = StyleSheet.create({
   },
   showMoreText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#FF3B30',
     marginRight: 8,
   },
 });
