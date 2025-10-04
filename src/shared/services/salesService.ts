@@ -1,23 +1,20 @@
 import { axiosInstance } from './apiClient';
+import { ChartDataParams, ListParams } from '../types';
 import { 
   Sales, 
-  SalesSummaryResponse, 
-  SalesChartResponse, 
   SalesListResponse, 
-  SalesListParams, 
-  ChartDataParams 
-} from '@shared/types/salesTypes';
+} from '../../features/sales/types/sales.types';
 
 // 매출 서비스 함수들
 export const salesService = {
   // 요약 데이터 조회 (오늘/이번달 매출)
-  getSummary: async (date: string): Promise<SalesSummaryResponse> => {
+  getSummary: async (date: string): Promise<any> => {
     const response = await axiosInstance.get(`/sales/summary/${date}`);
     return response.data;
   },
 
   // 차트 데이터 조회
-  getChartData: async (params: ChartDataParams): Promise<SalesChartResponse> => {
+  getChartData: async (params: ChartDataParams): Promise<any> => {
     const { type, startDate, endDate } = params;
     const response = await axiosInstance.get(
       `/sales/chart?type=${type}&startDate=${startDate}&endDate=${endDate}`
@@ -26,7 +23,7 @@ export const salesService = {
   },
 
   // 매출 목록 조회
-  getSalesList: async (params: SalesListParams): Promise<SalesListResponse> => {
+  getSalesList: async (params: ListParams): Promise<SalesListResponse> => {
     const { date, page = 1, limit = 5 } = params;
     const response = await axiosInstance.get(
       `/sales?date=${date}&page=${page}&limit=${limit}`

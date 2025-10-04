@@ -16,7 +16,8 @@ import { ExpenseRegisterModal, ExpenseDetailModal } from '../components';
 import { showConfirm, showError } from '@utils/alertUtils';
 import { formatDate } from '../../../shared/utils';
 import { styles } from '../styles/ExpenseStyles';
-import { ExpenseData, ExpenseCategory, DEFAULT_EXPENSE_CATEGORIES, ExpenseSummaryResponse, ExpenseChartResponse } from '../types/expense.types';
+import { ExpenseData, ExpenseCategory, DEFAULT_EXPENSE_CATEGORIES } from '../types/expense.types';
+import { SummaryResponse, ChartResponse } from '@shared/types';
 import { useExpenseData } from '../hooks/useExpenseData';
 import { expenseService } from '../services/expenseService';
 
@@ -61,7 +62,7 @@ const generateMockExpenseData = (): ExpenseData[] => {
   return expenses.sort((a, b) => new Date(b.expenseDate).getTime() - new Date(a.expenseDate).getTime());
 };
 
-const mockSummary: ExpenseSummaryResponse = {
+const mockSummary: SummaryResponse = {
   today: {
     amount: 125000,
     count: 3
@@ -72,7 +73,7 @@ const mockSummary: ExpenseSummaryResponse = {
   }
 };
 
-const mockChartData: ExpenseChartResponse = {
+const mockChartData: ChartResponse = {
   data: [45000, 32000, 28000, 55000, 41000, 67000, 38000],
   dates: Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
@@ -85,11 +86,11 @@ const mockChartData: ExpenseChartResponse = {
 export default function ExpenseScreen() {
   // Mock 데이터 상태
   const [mockExpenses, setMockExpenses] = useState<ExpenseData[]>([]);
-  const [mockSummary, setMockSummary] = useState<ExpenseSummaryResponse>({
+  const [mockSummary, setMockSummary] = useState<SummaryResponse>({
     today: { amount: 0, count: 0 },
     month: { amount: 0, count: 0 }
   });
-  const [mockChart, setMockChart] = useState<{ daily: ExpenseChartResponse | null, monthly: ExpenseChartResponse | null }>({
+  const [mockChart, setMockChart] = useState<{ daily: ChartResponse | null, monthly: ChartResponse | null }>({
     daily: null,
     monthly: null
   });

@@ -3,7 +3,7 @@ import { Modal, View, StyleSheet, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
 import { styles } from '@shared/styles/Sales';
-import { SalesData, SalesDetailModalProps } from '@shared/types/salesTypes';
+import { SalesData, SalesDetailModalProps } from '../types/sales.types';
 
 const SalesDetailModal: React.FC<SalesDetailModalProps> = ({ visible, sale, onClose, onDelete }) => {
   return (
