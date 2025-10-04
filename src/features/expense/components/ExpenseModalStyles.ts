@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
@@ -34,6 +34,7 @@ export const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   section: {
     marginTop: 24,
@@ -53,13 +54,14 @@ export const styles = StyleSheet.create({
   categoryItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 12,
     backgroundColor: 'white',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E5E5EA',
     minWidth: (screenWidth - 64) / 2 - 6,
+    gap: 12,
   },
   selectedCategoryItem: {
     borderColor: '#007AFF',
@@ -71,7 +73,6 @@ export const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
   },
   categoryText: {
     fontSize: 14,
@@ -223,7 +224,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  categoryIcon: {
+  detailCategoryIcon: {
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -302,5 +303,47 @@ export const styles = StyleSheet.create({
   detailContent: {
     padding: 20,
     flexGrow: 1,
+  },
+  // 하단 고정 버튼 스타일
+  bottomButtonContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    paddingBottom: 34, // SafeArea 하단 여백
+    backgroundColor: 'white',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
+    gap: 12,
+  },
+  cancelButtonBottom: {
+    flex: 1,
+    paddingVertical: 12,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6C757D',
+  },
+  saveButtonBottom: {
+    flex: 1,
+    paddingVertical: 12,
+    backgroundColor: '#FF3B30',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#CCCCCC',
+  },
+  saveButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'white',
   },
 });

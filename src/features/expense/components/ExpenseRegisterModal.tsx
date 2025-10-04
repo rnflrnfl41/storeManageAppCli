@@ -113,17 +113,7 @@ export const ExpenseRegisterModal: React.FC<ExpenseRegisterModalProps> = ({
       <SafeAreaView style={styles.container} edges={['top']}>
         {/* 헤더 */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} disabled={loading}>
-            <ThemedText style={styles.cancelButton}>취소</ThemedText>
-          </TouchableOpacity>
           <ThemedText style={styles.title}>지출 등록</ThemedText>
-          <TouchableOpacity onPress={handleSubmit} disabled={loading}>
-            {loading ? (
-              <InlineSpinner size="small" color="#007AFF" />
-            ) : (
-              <ThemedText style={styles.saveButton}>저장</ThemedText>
-            )}
-          </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -206,6 +196,28 @@ export const ExpenseRegisterModal: React.FC<ExpenseRegisterModalProps> = ({
             />
           </View>
         </ScrollView>
+
+        {/* 하단 고정 버튼 영역 */}
+        <View style={styles.bottomButtonContainer}>
+          <TouchableOpacity 
+            style={styles.cancelButtonBottom} 
+            onPress={onClose} 
+            disabled={loading}
+          >
+            <ThemedText style={styles.cancelButtonText}>취소</ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.saveButtonBottom, loading && styles.saveButtonDisabled]} 
+            onPress={handleSubmit} 
+            disabled={loading}
+          >
+            {loading ? (
+              <InlineSpinner size="small" color="white" />
+            ) : (
+              <ThemedText style={styles.saveButtonText}>등록</ThemedText>
+            )}
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
 
       <CalendarModal

@@ -1,3 +1,6 @@
+// shared/types에서 import
+import { SummaryResponse, ChartResponse, ListParams, ChartDataParams, LoadingState } from '../../../shared/types';
+
 export interface ExpenseCategory {
   id: string;
   name: string;
@@ -40,23 +43,6 @@ export interface ExpenseDetailModalProps {
   onDelete: (id: number) => void;
 }
 
-export interface ExpenseSummaryResponse {
-  today: {
-    amount: number;
-    count: number;
-  };
-  month: {
-    amount: number;
-    count: number;
-  };
-}
-
-export interface ExpenseChartResponse {
-  data: number[];
-  dates: string[];
-  counts: number[];
-}
-
 // 지출 목록 응답 타입 (서버/클라이언트 공통)
 export interface ExpenseListResponse {
   content: ExpenseData[];
@@ -68,31 +54,11 @@ export interface ExpenseListResponse {
   totalPages: number;
 }
 
-export interface ExpenseListParams {
-  date: string;
-  page?: number;
-  limit?: number;
-}
-
-export interface ChartDataParams {
-  type: 'daily' | 'monthly';
-  startDate: string;
-  endDate: string;
-}
-
-// useExpenseData 훅 관련 타입들
-export interface LoadingState {
-  summary: boolean;
-  chart: boolean;
-  list: boolean;
-  loadMore: boolean;
-}
-
 export interface ExpenseDataState {
-  summary: ExpenseSummaryResponse | null;
+  summary: SummaryResponse | null;
   chart: {
-    daily: ExpenseChartResponse | null;
-    monthly: ExpenseChartResponse | null;
+    daily: ChartResponse | null;
+    monthly: ChartResponse | null;
   };
   expenseList: {
     [date: string]: {
@@ -106,8 +72,8 @@ export interface ExpenseDataState {
 export interface UseExpenseDataReturn extends ExpenseDataState {
   loadSummaryData: (date: string) => Promise<void>;
   loadChartData: (params: ChartDataParams) => Promise<void>;
-  loadExpenseList: (params: ExpenseListParams) => Promise<void>;
-  loadMoreExpenseList: (params: ExpenseListParams) => Promise<void>;
+  loadExpenseList: (params: ListParams) => Promise<void>;
+  loadMoreExpenseList: (params: ListParams) => Promise<void>;
   deleteExpense: (id: number, date: string) => Promise<void>;
   refreshData: (date: string) => Promise<void>;
 }

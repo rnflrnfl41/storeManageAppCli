@@ -1,14 +1,8 @@
 import { axiosInstance } from '@services/apiClient';
+import { ChartDataParams, ListParams } from '../../../shared/types';
 import {
   Expense,
-  ExpenseData,
-  ExpenseSummaryResponse,
-  ExpenseChartResponse,
   ExpenseListResponse,
-  ExpenseListParams,
-  ChartDataParams,
-  ExpenseCategory,
-  DEFAULT_EXPENSE_CATEGORIES,
 } from '../types/expense.types';
 
 class ExpenseService {
@@ -36,11 +30,9 @@ class ExpenseService {
   }
 
   // 지출 요약 조회
-  async getExpenseSummary(date: string): Promise<ExpenseSummaryResponse> {
+  async getExpenseSummary(date: string): Promise<any> {
     try {
-      const response = await axiosInstance.get('/expense/summary', {
-        params: { date }
-      });
+      const response = await axiosInstance.get('/expense/summary/'+date);
       return response.data;
     } catch (error) {
       console.error('지출 요약 조회 실패:', error);
@@ -49,7 +41,7 @@ class ExpenseService {
   }
 
   // 지출 차트 데이터 조회
-  async getExpenseChart(params: ChartDataParams): Promise<ExpenseChartResponse> {
+  async getExpenseChart(params: ChartDataParams): Promise<any> {
     try {
       const response = await axiosInstance.get('/expense/chart', {
         params
@@ -62,7 +54,7 @@ class ExpenseService {
   }
 
   // 지출 목록 조회 (Spring Pageable 호환)
-  async getExpenseList(params: ExpenseListParams): Promise<ExpenseListResponse> {
+  async getExpenseList(params: ListParams): Promise<ExpenseListResponse> {
     try {
       const response = await axiosInstance.get('/expense', {
         params: {
@@ -79,16 +71,6 @@ class ExpenseService {
     }
   }
 
-  // 지출 상세 조회
-  async getExpenseDetail(id: number): Promise<ExpenseData> {
-    try {
-      const response = await axiosInstance.get(`/expense/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error('지출 상세 조회 실패:', error);
-      throw error;
-    }
-  }
 }
 
 export const expenseService = new ExpenseService();

@@ -7,7 +7,7 @@ import { styles } from '@shared/styles/Sales';
 import { CustomerSearchModal } from './CustomerSearchModal';
 import { CalendarModal } from '@components/CalendarModal';
 import { SERVICES } from '@shared/constants';
-import { Customer, Coupon, Service, SalesRegisterModalProps } from '@shared/types/salesTypes';
+import { Customer, Coupon, Service, SalesRegisterModalProps } from '../types/sales.types';
 
 const SalesRegisterModal: React.FC<SalesRegisterModalProps> = ({
   visible,

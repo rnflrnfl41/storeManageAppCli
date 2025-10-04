@@ -93,7 +93,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
             <View style={styles.detailRow}>
               <ThemedText style={styles.detailLabel}>날짜</ThemedText>
               <ThemedText style={styles.detailValue}>
-                {formatDate(expense.date)}
+                {formatDate(expense.expenseDate)}
               </ThemedText>
             </View>
 

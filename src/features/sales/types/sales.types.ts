@@ -1,4 +1,6 @@
 // Sales Feature Types
+// shared/types에서 import
+import { SummaryResponse, ChartResponse, ListParams, ChartDataParams, LoadingState } from '../../../shared/types';
 
 // 기본 엔티티 타입들
 export interface Coupon {
@@ -76,6 +78,7 @@ export interface SalesRegisterModalProps {
     totalAmount: number;
     finalAmount: number;
     visitDate: string;
+    visitTime: string;
   }) => Promise<void>;
 }
 
@@ -94,22 +97,6 @@ export interface CustomerSearchModalProps {
 }
 
 // API 응답 타입들
-export interface SalesSummaryResponse {
-  today: {
-    amount: number;
-    count: number;
-  };
-  month: {
-    amount: number;
-    count: number;
-  };
-}
-
-export interface SalesChartResponse {
-  data: number[];
-  dates: string[];
-  counts: number[];
-}
 
 export interface SalesListResponse {
   sales: SalesData[];
@@ -120,31 +107,13 @@ export interface SalesListResponse {
   };
 }
 
-export interface SalesListParams {
-  date: string;
-  page?: number;
-  limit?: number;
-}
-
-export interface ChartDataParams {
-  type: 'daily' | 'monthly';
-  startDate: string;
-  endDate: string;
-}
-
 // useSalesData 훅 관련 타입들
-export interface LoadingState {
-  summary: boolean;
-  chart: boolean;
-  list: boolean;
-  loadMore: boolean;
-}
 
 export interface SalesDataState {
-  summary: SalesSummaryResponse | null;
+  summary: SummaryResponse | null;
   chart: {
-    daily: SalesChartResponse | null;
-    monthly: SalesChartResponse | null;
+    daily: ChartResponse | null;
+    monthly: ChartResponse | null;
   };
   salesList: {
     [date: string]: {

@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { salesService } from '../services/salesService';
-import { 
-  ChartDataParams,
-  LoadingState,
-  SalesDataState
-} from '../types/sales.types';
+import { ChartDataParams, LoadingState } from '../../../shared/types';
+import { SalesDataState } from '../types/sales.types';
 
 const initialState: SalesDataState = {
   summary: null,

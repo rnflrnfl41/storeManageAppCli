@@ -1,13 +1,9 @@
 import { useState, useCallback } from 'react';
 import { expenseService } from '../services';
+import { LoadingState, ChartDataParams, ListParams } from '../../../shared/types';
 import {
   ExpenseDataState,
-  LoadingState,
-  ExpenseSummaryResponse,
-  ExpenseChartResponse,
   ExpenseListResponse,
-  ChartDataParams,
-  ExpenseListParams,
 } from '../types/expense.types';
 
 const initialState: ExpenseDataState = {
@@ -96,7 +92,7 @@ export const useExpenseData = () => {
   }, [setLoading]);
 
   // 지출 목록 로드 (Spring Pageable 호환)
-  const loadExpenseList = useCallback(async (params: ExpenseListParams) => {
+  const loadExpenseList = useCallback(async (params: ListParams) => {
     setLoading({ list: true });
 
     try {
@@ -106,7 +102,7 @@ export const useExpenseData = () => {
       const transformedData = {
         data: response.content,
         pagination: {
-          page: response.pageable.pageNumber,
+          page: response.pageable.pageNumber + 1, // 0부터 시작하는 것을 1부터 시작하도록 변환
           total: response.totalElements,
           totalPages: response.totalPages,
         }

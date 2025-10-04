@@ -16,85 +16,15 @@ import { ExpenseRegisterModal, ExpenseDetailModal } from '../components';
 import { showConfirm, showError } from '@utils/alertUtils';
 import { formatDate } from '../../../shared/utils';
 import { styles } from '../styles/ExpenseStyles';
-import { ExpenseData, ExpenseCategory, DEFAULT_EXPENSE_CATEGORIES, ExpenseSummaryResponse, ExpenseChartResponse } from '../types/expense.types';
+import { ExpenseData, ExpenseCategory, DEFAULT_EXPENSE_CATEGORIES } from '../types/expense.types';
+import { SummaryResponse, ChartResponse } from '@shared/types';
 import { useExpenseData } from '../hooks/useExpenseData';
 import { expenseService } from '../services/expenseService';
 
 const screenWidth = Dimensions.get('window').width;
 
-// Mock 데이터 생성
-const generateMockExpenseData = (): ExpenseData[] => {
-  const categories = DEFAULT_EXPENSE_CATEGORIES;
-  const today = new Date();
-  const expenses: ExpenseData[] = [];
-  
-  for (let i = 0; i < 15; i++) {
-    const category = categories[Math.floor(Math.random() * categories.length)];
-    const date = new Date(today);
-    date.setDate(date.getDate() - Math.floor(Math.random() * 7));
-    
-    expenses.push({
-      id: i + 1,
-      amount: Math.floor(Math.random() * 500000) + 10000,
-      memo: [
-        '임대료 지불',
-        '전기세 납부',
-        '가스비 납부',
-        '인터넷 요금',
-        '소모품 구매',
-        '장비 수리비',
-        '광고비',
-        '보험료',
-        '청소용품',
-        '사무용품',
-        '커피 머신 수리',
-        '인쇄비',
-        '택배비',
-        '정기점검비',
-        '기타비용'
-      ][Math.floor(Math.random() * 15)],
-      expenseDate: date.toISOString().split('T')[0],
-      categoryName: category.name,
-    });
-  }
-  
-  return expenses.sort((a, b) => new Date(b.expenseDate).getTime() - new Date(a.expenseDate).getTime());
-};
-
-const mockSummary: ExpenseSummaryResponse = {
-  today: {
-    amount: 125000,
-    count: 3
-  },
-  month: {
-    amount: 1850000,
-    count: 28
-  }
-};
-
-const mockChartData: ExpenseChartResponse = {
-  data: [45000, 32000, 28000, 55000, 41000, 67000, 38000],
-  dates: Array.from({ length: 7 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (6 - i));
-    return date.toISOString().split('T')[0];
-  }),
-  counts: [2, 1, 1, 3, 2, 4, 2]
-};
-
 export default function ExpenseScreen() {
-  // Mock 데이터 상태
-  const [mockExpenses, setMockExpenses] = useState<ExpenseData[]>([]);
-  const [mockSummary, setMockSummary] = useState<ExpenseSummaryResponse>({
-    today: { amount: 0, count: 0 },
-    month: { amount: 0, count: 0 }
-  });
-  const [mockChart, setMockChart] = useState<{ daily: ExpenseChartResponse | null, monthly: ExpenseChartResponse | null }>({
-    daily: null,
-    monthly: null
-  });
-
-  // API 데이터 훅 사용 (실제로는 사용하지 않음)
+  // API 데이터 훅 사용
   const {
     summary,
     chart,
@@ -117,41 +47,22 @@ export default function ExpenseScreen() {
   const [tooltip, setTooltip] = useState<{ visible: boolean, x: number, y: number, data: any } | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Mock 데이터 초기화
+  // 초기 데이터 로딩
   useEffect(() => {
-    const expenses = generateMockExpenseData();
-    setMockExpenses(expenses);
-    
-    // 요약 데이터 계산
-    const today = new Date().toISOString().split('T')[0];
-    const todayExpenses = expenses.filter(expense => expense.expenseDate === today);
-    const thisMonth = new Date().toISOString().slice(0, 7);
-    const monthExpenses = expenses.filter(expense => expense.expenseDate.startsWith(thisMonth));
-    
-    setMockSummary({
-      today: {
-        amount: todayExpenses.reduce((sum, expense) => sum + expense.amount, 0),
-        count: todayExpenses.length
-      },
-      month: {
-        amount: monthExpenses.reduce((sum, expense) => sum + expense.amount, 0),
-        count: monthExpenses.length
+    const initializeData = async () => {
+      const today = new Date().toISOString().split('T')[0];
+      try {
+        await Promise.all([
+          loadSummaryData(today),
+          loadChartData('daily'),
+          loadExpenseList({ date: selectedDate, page: 0, limit: 5 }),
+        ]);
+      } catch (error) {
+        console.error('초기 데이터 로딩 실패:', error);
       }
-    });
-    
-    // 차트 데이터 설정
-    setMockChart({
-      daily: mockChartData,
-      monthly: {
-        data: [450000, 520000, 380000, 610000, 490000, 670000, 580000],
-        dates: Array.from({ length: 7 }, (_, i) => {
-          const date = new Date();
-          date.setMonth(date.getMonth() - (6 - i));
-          return date.toISOString().slice(0, 7);
-        }),
-        counts: [15, 18, 12, 22, 16, 24, 20]
-      }
-    });
+    };
+
+    initializeData();
   }, []);
 
   const handleRegisterSubmit = async (payload: {
@@ -174,10 +85,12 @@ export default function ExpenseScreen() {
       await expenseService.registerExpense(expenseData);
       
       // 성공 시 관련 데이터 새로고침
+      const today = new Date().toISOString().split('T')[0];
       await Promise.all([
-        loadSummaryData(payload.expenseDate),
-        loadExpenseList({ date: payload.expenseDate, page: 0, limit: 5 }), // 강제 새로고침
-        loadChartData('daily'), // 일별 차트도 새로고침
+        loadSummaryData(today), // 오늘 지출 요약 업데이트
+        loadExpenseList({ date: payload.expenseDate, page: 0, limit: 5 }), // 해당 날짜 지출 목록 업데이트
+        loadChartData('daily'), // 일별 차트 업데이트
+        loadChartData('monthly'), // 월별 차트도 업데이트
       ]);
       
       // 모달 닫기
@@ -190,6 +103,7 @@ export default function ExpenseScreen() {
 
   const handleExpensePress = (item: ExpenseData) => {
     setSelectedExpense(item);
+    console.log(item);
     setDetailModalVisible(true);
   };
 
@@ -203,8 +117,15 @@ export default function ExpenseScreen() {
     if (confirmed) {
       try {
         await deleteExpenseFromAPI(id, selectedDate);
-        // 차트 데이터 새로고침 (현재 보기 타입)
-        await loadChartData(viewType);
+        
+        // 삭제 후 관련 데이터 새로고침
+        const today = new Date().toISOString().split('T')[0];
+        await Promise.all([
+          loadSummaryData(today), // 오늘 지출 요약 업데이트
+          loadExpenseList({ date: selectedDate, page: 0, limit: 5 }), // 해당 날짜 지출 목록 업데이트
+          loadChartData('daily'), // 일별 차트 업데이트
+          loadChartData('monthly'), // 월별 차트 업데이트
+        ]);
       } catch (error) {
         console.error('지출 삭제 실패:', error);
       }
@@ -213,7 +134,7 @@ export default function ExpenseScreen() {
 
   const getTodayExpenses = () => {
     const today = new Date().toISOString().split('T')[0];
-    return mockExpenses.filter(expense => expense.expenseDate === today);
+    return expenseList[today]?.data || [];
   };
 
   const getSelectedDateExpenses = () => {
@@ -223,8 +144,9 @@ export default function ExpenseScreen() {
   // 더보기 가능 여부 확인
   const hasMoreData = () => {
     const currentData = expenseList[selectedDate];
-    if (!currentData) return false;
-    
+    if (!currentData) {
+      return false;
+    }
     const { pagination } = currentData;
     return pagination.page < pagination.totalPages;
   };
@@ -275,7 +197,7 @@ export default function ExpenseScreen() {
   };
 
   const getChartData = () => {
-    const chartData = viewType === 'daily' ? mockChart.daily : mockChart.monthly;
+    const chartData = viewType === 'daily' ? chart.daily : chart.monthly;
     
     if (!chartData) {
       return {
@@ -303,7 +225,7 @@ export default function ExpenseScreen() {
   };
 
   const getChartDateRange = () => {
-    const chartData = viewType === 'daily' ? mockChart.daily : mockChart.monthly;
+    const chartData = viewType === 'daily' ? chart.daily : chart.monthly;
     
     if (!chartData || chartData.dates.length === 0) {
       return '';
@@ -357,7 +279,8 @@ export default function ExpenseScreen() {
       const today = new Date().toISOString().split('T')[0];
       await Promise.all([
         loadSummaryData(today),
-        loadChartData(viewType),
+        loadChartData('daily'),
+        loadChartData('monthly'),
         loadExpenseList({ date: selectedDate, page: 0, limit: 5 }),
       ]);
     } catch (error) {
@@ -406,17 +329,29 @@ export default function ExpenseScreen() {
         <View style={styles.summaryContainer}>
           <View style={styles.summaryCard}>
             <ThemedText style={styles.summaryLabel}>오늘 지출</ThemedText>
-            <ThemedText style={styles.summaryAmount}>
-              {mockSummary.today.amount.toLocaleString()}원
-            </ThemedText>
-            <ThemedText style={styles.summaryCount}>{mockSummary.today.count}건</ThemedText>
+            {loading.summary ? (
+              <InlineSpinner size="small" color="#FF3B30" />
+            ) : (
+              <>
+                <ThemedText style={styles.summaryAmount}>
+                  {summary?.today?.amount?.toLocaleString() || '0'}원
+                </ThemedText>
+                <ThemedText style={styles.summaryCount}>{summary?.today?.count || 0}건</ThemedText>
+              </>
+            )}
           </View>
           <View style={styles.summaryCard}>
             <ThemedText style={styles.summaryLabel}>이번 달 지출</ThemedText>
-            <ThemedText style={styles.summaryAmount}>
-              {mockSummary.month.amount.toLocaleString()}원
-            </ThemedText>
-            <ThemedText style={styles.summaryCount}>{mockSummary.month.count}건</ThemedText>
+            {loading.summary ? (
+              <InlineSpinner size="small" color="#FF3B30" />
+            ) : (
+              <>
+                <ThemedText style={styles.summaryAmount}>
+                  {summary?.month?.amount?.toLocaleString() || '0'}원
+                </ThemedText>
+                <ThemedText style={styles.summaryCount}>{summary?.month?.count || 0}건</ThemedText>
+              </>
+            )}
           </View>
         </View>
 
@@ -442,7 +377,11 @@ export default function ExpenseScreen() {
               </TouchableOpacity>
             </View>
           </View>
-          {getChartData().datasets[0].data.length > 0 ? (
+          {loading.chart ? (
+            <View style={[styles.chart, { height: 220, justifyContent: 'center', alignItems: 'center' }]}>
+              <InlineSpinner size="small" color="#FF3B30" />
+            </View>
+          ) : getChartData().datasets[0].data.length > 0 ? (
             <LineChart
               data={getChartData()}
               width={screenWidth - 80}
@@ -523,7 +462,12 @@ export default function ExpenseScreen() {
             </ThemedText>
           </View>
 
-          {getSelectedDateExpenses().length === 0 ? (
+          {loading.list ? (
+            <View style={styles.emptyState}>
+              <InlineSpinner size="small" color="#FF3B30" />
+              <ThemedText style={styles.emptyText}>로딩 중...</ThemedText>
+            </View>
+          ) : getSelectedDateExpenses().length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="receipt-outline" size={48} color="#8E8E93" />
               <ThemedText style={styles.emptyText}>선택한 날짜에 지출이 없습니다</ThemedText>
