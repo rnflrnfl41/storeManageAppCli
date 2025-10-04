@@ -38,9 +38,7 @@ class ExpenseService {
   // 지출 요약 조회
   async getExpenseSummary(date: string): Promise<ExpenseSummaryResponse> {
     try {
-      const response = await axiosInstance.get('/expense/summary', {
-        params: { date }
-      });
+      const response = await axiosInstance.get('/expense/summary/'+date);
       return response.data;
     } catch (error) {
       console.error('지출 요약 조회 실패:', error);
