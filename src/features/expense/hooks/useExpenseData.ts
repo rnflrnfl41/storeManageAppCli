@@ -102,7 +102,7 @@ export const useExpenseData = () => {
       const transformedData = {
         data: response.content,
         pagination: {
-          page: response.pageable.pageNumber,
+          page: response.pageable.pageNumber + 1, // 0부터 시작하는 것을 1부터 시작하도록 변환
           total: response.totalElements,
           totalPages: response.totalPages,
         }
