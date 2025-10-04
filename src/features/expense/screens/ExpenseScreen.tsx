@@ -85,10 +85,12 @@ export default function ExpenseScreen() {
       await expenseService.registerExpense(expenseData);
       
       // 성공 시 관련 데이터 새로고침
+      const today = new Date().toISOString().split('T')[0];
       await Promise.all([
-        loadSummaryData(payload.expenseDate),
-        loadExpenseList({ date: payload.expenseDate, page: 0, limit: 5 }), // 강제 새로고침
-        loadChartData('daily'), // 일별 차트도 새로고침
+        loadSummaryData(today), // 오늘 지출 요약 업데이트
+        loadExpenseList({ date: payload.expenseDate, page: 0, limit: 5 }), // 해당 날짜 지출 목록 업데이트
+        loadChartData('daily'), // 일별 차트 업데이트
+        loadChartData('monthly'), // 월별 차트도 업데이트
       ]);
       
       // 모달 닫기
@@ -115,8 +117,15 @@ export default function ExpenseScreen() {
     if (confirmed) {
       try {
         await deleteExpenseFromAPI(id, selectedDate);
-        // 차트 데이터 새로고침 (현재 보기 타입)
-        await loadChartData(viewType);
+        
+        // 삭제 후 관련 데이터 새로고침
+        const today = new Date().toISOString().split('T')[0];
+        await Promise.all([
+          loadSummaryData(today), // 오늘 지출 요약 업데이트
+          loadExpenseList({ date: selectedDate, page: 0, limit: 5 }), // 해당 날짜 지출 목록 업데이트
+          loadChartData('daily'), // 일별 차트 업데이트
+          loadChartData('monthly'), // 월별 차트 업데이트
+        ]);
       } catch (error) {
         console.error('지출 삭제 실패:', error);
       }
@@ -270,7 +279,8 @@ export default function ExpenseScreen() {
       const today = new Date().toISOString().split('T')[0];
       await Promise.all([
         loadSummaryData(today),
-        loadChartData(viewType),
+        loadChartData('daily'),
+        loadChartData('monthly'),
         loadExpenseList({ date: selectedDate, page: 0, limit: 5 }),
       ]);
     } catch (error) {

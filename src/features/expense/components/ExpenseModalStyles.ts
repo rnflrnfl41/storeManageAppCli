@@ -223,7 +223,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  categoryIcon: {
+  detailCategoryIcon: {
     width: 32,
     height: 32,
     borderRadius: 16,
