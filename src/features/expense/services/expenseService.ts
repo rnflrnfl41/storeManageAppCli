@@ -2,10 +2,7 @@ import { axiosInstance } from '@services/apiClient';
 import { ChartDataParams, ListParams } from '../../../shared/types';
 import {
   Expense,
-  ExpenseData,
   ExpenseListResponse,
-  ExpenseCategory,
-  DEFAULT_EXPENSE_CATEGORIES,
 } from '../types/expense.types';
 
 class ExpenseService {
@@ -74,16 +71,6 @@ class ExpenseService {
     }
   }
 
-  // 지출 상세 조회
-  async getExpenseDetail(id: number): Promise<ExpenseData> {
-    try {
-      const response = await axiosInstance.get(`/expense/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error('지출 상세 조회 실패:', error);
-      throw error;
-    }
-  }
 }
 
 export const expenseService = new ExpenseService();
