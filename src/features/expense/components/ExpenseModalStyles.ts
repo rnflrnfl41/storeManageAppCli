@@ -53,13 +53,14 @@ export const styles = StyleSheet.create({
   categoryItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 12,
     backgroundColor: 'white',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E5E5EA',
     minWidth: (screenWidth - 64) / 2 - 6,
+    gap: 12,
   },
   selectedCategoryItem: {
     borderColor: '#007AFF',
@@ -71,7 +72,6 @@ export const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
   },
   categoryText: {
     fontSize: 14,
