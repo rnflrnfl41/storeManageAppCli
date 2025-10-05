@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 
 import { LoadingDots } from '@components';
-import { useOrientation } from '@hooks/useOrientation';
+import { useOrientation } from '../hooks/useOrientation';
 import { publicAxiosInstance } from '@services/apiClient';
 import { tokenManager } from '@services/tokenManager';
 import { createResponsiveLoginStyles, loginStyles } from '../styles';
