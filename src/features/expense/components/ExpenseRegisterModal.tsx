@@ -8,14 +8,12 @@ import {
   Dimensions,
   TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
-import { CustomTextInput } from '@components/CustomTextInput';
 import { InlineSpinner } from '@components/InlineSpinner';
 import { CalendarModal } from '@components';
 import { ExpenseRegisterModalProps, ExpenseCategory, DEFAULT_EXPENSE_CATEGORIES } from '../types/expense.types';
-import { styles } from './ExpenseModalStyles';
+import { expenseModalStyles } from '../styles';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -25,7 +23,7 @@ export const ExpenseRegisterModal: React.FC<ExpenseRegisterModalProps> = ({
   onSubmit,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<ExpenseCategory>(DEFAULT_EXPENSE_CATEGORIES[0]);
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState('0');
   const [memo, setMemo] = useState('');
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(false);
@@ -48,7 +46,7 @@ export const ExpenseRegisterModal: React.FC<ExpenseRegisterModalProps> = ({
   useEffect(() => {
     if (visible) {
       setSelectedCategory(DEFAULT_EXPENSE_CATEGORIES[0]);
-      setAmount('');
+      setAmount('0');
       setMemo('');
       setExpenseDate(new Date().toISOString().split('T')[0]);
     }
@@ -86,17 +84,17 @@ export const ExpenseRegisterModal: React.FC<ExpenseRegisterModalProps> = ({
     <TouchableOpacity
       key={category.id}
       style={[
-        styles.categoryItem,
-        selectedCategory.id === category.id && styles.selectedCategoryItem,
+        expenseModalStyles.categoryItem,
+        selectedCategory.id === category.id && expenseModalStyles.selectedCategoryItem,
       ]}
       onPress={() => setSelectedCategory(category)}
     >
-      <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
+      <View style={[expenseModalStyles.categoryIcon, { backgroundColor: category.color }]}>
         <Ionicons name={category.icon as any} size={20} color="white" />
       </View>
       <ThemedText style={[
-        styles.categoryText,
-        selectedCategory.id === category.id && styles.selectedCategoryText,
+        expenseModalStyles.categoryText,
+        selectedCategory.id === category.id && expenseModalStyles.selectedCategoryText,
       ]}>
         {category.name}
       </ThemedText>
@@ -105,120 +103,125 @@ export const ExpenseRegisterModal: React.FC<ExpenseRegisterModalProps> = ({
 
   return (
     <Modal
+      animationType="fade"
+      transparent={true}
       visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container} edges={['top']}>
-        {/* 헤더 */}
-        <View style={styles.header}>
-          <ThemedText style={styles.title}>지출 등록</ThemedText>
-        </View>
-
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* 카테고리 선택 */}
-          <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>카테고리</ThemedText>
-            <View style={styles.categoryGrid}>
-              {DEFAULT_EXPENSE_CATEGORIES.map(renderCategoryItem)}
-            </View>
+      <View style={expenseModalStyles.modalOverlay}>
+        <View style={expenseModalStyles.modalContainer}>
+          {/* 고정 헤더 */}
+          <View style={expenseModalStyles.modalHeader}>
+            <ThemedText style={expenseModalStyles.modalTitle}>지출 등록</ThemedText>
           </View>
-
-          {/* 날짜 선택 */}
-          <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>날짜 *</ThemedText>
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setCalendarVisible(true)}
-            >
-              <View style={styles.dateButtonContent}>
-                <Ionicons name="calendar-outline" size={20} color="#007AFF" />
-                <ThemedText style={styles.dateButtonText}>{expenseDate}</ThemedText>
+          
+          {/* 스크롤 가능한 내용 */}
+          <ScrollView 
+            style={expenseModalStyles.modalScrollView}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={expenseModalStyles.modalScrollContent}
+          >
+            <View style={expenseModalStyles.modalContent}>
+              {/* 카테고리 선택 */}
+              <View style={expenseModalStyles.inputContainer}>
+                <ThemedText style={expenseModalStyles.inputLabel}>카테고리</ThemedText>
+                <View style={expenseModalStyles.categoryGrid}>
+                  {DEFAULT_EXPENSE_CATEGORIES.map(renderCategoryItem)}
+                </View>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
+
+              {/* 날짜 선택 */}
+              <View style={expenseModalStyles.inputContainer}>
+                <ThemedText style={expenseModalStyles.inputLabel}>날짜 *</ThemedText>
+                <TouchableOpacity
+                  style={expenseModalStyles.customerSelectButton}
+                  onPress={() => setCalendarVisible(true)}
+                >
+                  <View style={expenseModalStyles.customerSelectContent}>
+                    <Ionicons name="calendar-outline" size={20} color="#4A90E2" />
+                    <ThemedText style={[expenseModalStyles.customerName, { marginLeft: 12, fontWeight: 'bold' }]}>{expenseDate}</ThemedText>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
+                </TouchableOpacity>
+              </View>
+
+              {/* 금액 입력 */}
+              <View style={expenseModalStyles.inputContainer}>
+                <View style={expenseModalStyles.amountCard}>
+                  <View style={expenseModalStyles.amountHeader}>
+                    <View style={expenseModalStyles.amountInfo}>
+                      <Ionicons name="trending-down-outline" size={20} color="#FF3B30" />
+                      <ThemedText style={expenseModalStyles.amountLabel}>지출 금액</ThemedText>
+                    </View>
+                    <ThemedText style={expenseModalStyles.amountValue}>
+                      {formatAmount(amount) || '0'}원
+                    </ThemedText>
+                  </View>
+                  <View style={expenseModalStyles.amountAdjustContainer}>
+                    <TouchableOpacity style={expenseModalStyles.adjustButton} onPress={() => adjustAmount(-10000)}>
+                      <ThemedText style={expenseModalStyles.adjustButtonText}>-10,000</ThemedText>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={expenseModalStyles.adjustButton} onPress={() => adjustAmount(-1000)}>
+                      <ThemedText style={expenseModalStyles.adjustButtonText}>-1,000</ThemedText>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={expenseModalStyles.adjustButton} onPress={() => adjustAmount(1000)}>
+                      <ThemedText style={expenseModalStyles.adjustButtonText}>+1,000</ThemedText>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={expenseModalStyles.adjustButton} onPress={() => adjustAmount(10000)}>
+                      <ThemedText style={expenseModalStyles.adjustButtonText}>+10,000</ThemedText>
+                    </TouchableOpacity>
+                  </View>
+                  <TextInput
+                    style={expenseModalStyles.amountInput}
+                    value={amount}
+                    onChangeText={(text) => {
+                      const numericValue = text.replace(/[^0-9]/g, '');
+                      setAmount(numericValue);
+                    }}
+                    placeholder="직접 입력"
+                    keyboardType="numeric"
+                  />
+                </View>
+              </View>
+
+              {/* 메모 입력 */}
+              <View style={expenseModalStyles.inputContainer}>
+                <ThemedText style={expenseModalStyles.inputLabel}>메모</ThemedText>
+                <TextInput
+                  value={memo}
+                  onChangeText={setMemo}
+                  placeholder="지출 내용을 입력하세요 (선택사항)"
+                  placeholderTextColor="#8E8E93"
+                  multiline
+                  style={expenseModalStyles.memoInput}
+                />
+              </View>
+            </View>
+          </ScrollView>
+          
+          {/* 고정 하단 버튼 */}
+          <View style={expenseModalStyles.bottomButtonContainer}>
+            <TouchableOpacity 
+              style={expenseModalStyles.cancelButtonBottom} 
+              onPress={onClose} 
+              disabled={loading}
+            >
+              <ThemedText style={expenseModalStyles.cancelButtonText}>취소</ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[expenseModalStyles.saveButtonBottom, loading && expenseModalStyles.saveButtonDisabled]} 
+              onPress={handleSubmit} 
+              disabled={loading}
+            >
+              {loading ? (
+                <InlineSpinner size="small" color="white" />
+              ) : (
+                <ThemedText style={expenseModalStyles.saveButtonText}>등록</ThemedText>
+              )}
             </TouchableOpacity>
           </View>
-
-          {/* 금액 입력 */}
-          <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>금액 *</ThemedText>
-            <TextInput
-              value={formatAmount(amount)}
-              onChangeText={(text) => {
-                const numericValue = text.replace(/[^0-9]/g, '');
-                setAmount(numericValue);
-              }}
-              placeholder="금액을 입력하세요"
-              keyboardType="numeric"
-              style={styles.amountInput}
-            />
-            
-            {/* 금액 증감 버튼 */}
-            <View style={styles.amountButtons}>
-              <TouchableOpacity
-                style={styles.amountButton}
-                onPress={() => adjustAmount(-10000)}
-              >
-                <ThemedText style={styles.amountButtonText}>-10,000</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.amountButton}
-                onPress={() => adjustAmount(-1000)}
-              >
-                <ThemedText style={styles.amountButtonText}>-1,000</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.amountButton}
-                onPress={() => adjustAmount(1000)}
-              >
-                <ThemedText style={styles.amountButtonText}>+1,000</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.amountButton}
-                onPress={() => adjustAmount(10000)}
-              >
-                <ThemedText style={styles.amountButtonText}>+10,000</ThemedText>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* 메모 입력 */}
-          <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>메모</ThemedText>
-            <TextInput
-              value={memo}
-              onChangeText={setMemo}
-              placeholder="지출 내용을 입력하세요 (선택사항)"
-              placeholderTextColor="#8E8E93"
-              multiline
-              style={styles.memoInput}
-            />
-          </View>
-        </ScrollView>
-
-        {/* 하단 고정 버튼 영역 */}
-        <View style={styles.bottomButtonContainer}>
-          <TouchableOpacity 
-            style={styles.cancelButtonBottom} 
-            onPress={onClose} 
-            disabled={loading}
-          >
-            <ThemedText style={styles.cancelButtonText}>취소</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.saveButtonBottom, loading && styles.saveButtonDisabled]} 
-            onPress={handleSubmit} 
-            disabled={loading}
-          >
-            {loading ? (
-              <InlineSpinner size="small" color="white" />
-            ) : (
-              <ThemedText style={styles.saveButtonText}>등록</ThemedText>
-            )}
-          </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
 
       <CalendarModal
         visible={calendarVisible}

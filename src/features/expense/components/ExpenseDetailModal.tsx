@@ -4,15 +4,12 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
 import { ExpenseDetailModalProps, DEFAULT_EXPENSE_CATEGORIES } from '../types/expense.types';
-import { styles } from './ExpenseModalStyles';
+import { expenseModalStyles } from '../styles';
 
-const screenWidth = Dimensions.get('window').width;
 
 export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
   visible,
@@ -47,28 +44,28 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.detailModalContent}>
-          <View style={styles.detailHeader}>
-            <ThemedText style={styles.detailTitle}>지출 상세</ThemedText>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+      <View style={expenseModalStyles.modalOverlay}>
+        <View style={expenseModalStyles.detailModalContent}>
+          <View style={expenseModalStyles.detailHeader}>
+            <ThemedText style={expenseModalStyles.detailTitle}>지출 상세</ThemedText>
+            <TouchableOpacity style={expenseModalStyles.closeButton} onPress={onClose}>
               <Ionicons name="close" size={24} color="#8E8E93" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.detailContent} showsVerticalScrollIndicator={false}>
+          <ScrollView style={expenseModalStyles.detailContent} showsVerticalScrollIndicator={false}>
             {/* 카테고리 정보 */}
-            <View style={styles.detailRow}>
-              <ThemedText style={styles.detailLabel}>카테고리</ThemedText>
-              <View style={styles.categoryInfo}>
+            <View style={expenseModalStyles.detailRow}>
+              <ThemedText style={expenseModalStyles.detailLabel}>카테고리</ThemedText>
+              <View style={expenseModalStyles.categoryInfo}>
                 {(() => {
                   const category = DEFAULT_EXPENSE_CATEGORIES.find(cat => cat.name === expense.categoryName);
                   return (
                     <>
-                      <View style={[styles.categoryIcon, { backgroundColor: category?.color || '#8E8E93' }]}>
+                      <View style={[expenseModalStyles.categoryIcon, { backgroundColor: category?.color || '#8E8E93' }]}>
                         <Ionicons name={category?.icon as any || 'help-circle'} size={20} color="white" />
                       </View>
-                      <ThemedText style={styles.categoryName}>{expense.categoryName}</ThemedText>
+                      <ThemedText style={expenseModalStyles.categoryName}>{expense.categoryName}</ThemedText>
                     </>
                   );
                 })()}
@@ -76,31 +73,31 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
             </View>
 
             {/* 금액 정보 */}
-            <View style={styles.detailRow}>
-              <ThemedText style={styles.detailLabel}>금액</ThemedText>
-              <ThemedText style={styles.detailAmount}>
+            <View style={expenseModalStyles.detailRow}>
+              <ThemedText style={expenseModalStyles.detailLabel}>금액</ThemedText>
+              <ThemedText style={expenseModalStyles.detailAmount}>
                 {formatAmount(expense.amount)}원
               </ThemedText>
             </View>
 
             {/* 메모 정보 */}
-            <View style={styles.detailRow}>
-              <ThemedText style={styles.detailLabel}>메모</ThemedText>
-              <ThemedText style={styles.detailValue}>{expense.memo}</ThemedText>
+            <View style={expenseModalStyles.detailRow}>
+              <ThemedText style={expenseModalStyles.detailLabel}>메모</ThemedText>
+              <ThemedText style={expenseModalStyles.detailValue}>{expense.memo}</ThemedText>
             </View>
 
             {/* 날짜 정보 */}
-            <View style={styles.detailRow}>
-              <ThemedText style={styles.detailLabel}>날짜</ThemedText>
-              <ThemedText style={styles.detailValue}>
+            <View style={expenseModalStyles.detailRow}>
+              <ThemedText style={expenseModalStyles.detailLabel}>날짜</ThemedText>
+              <ThemedText style={expenseModalStyles.detailValue}>
                 {formatDate(expense.expenseDate)}
               </ThemedText>
             </View>
 
             {/* 삭제 버튼 */}
-            <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+            <TouchableOpacity style={expenseModalStyles.deleteButton} onPress={handleDelete}>
               <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-              <ThemedText style={styles.deleteButtonText}>지출 삭제</ThemedText>
+              <ThemedText style={expenseModalStyles.deleteButtonText}>삭제</ThemedText>
             </TouchableOpacity>
           </ScrollView>
         </View>
