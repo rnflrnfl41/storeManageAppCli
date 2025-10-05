@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Modal, View, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform } from 'react-native';
+import { Modal, View, ScrollView, TouchableOpacity, TextInput, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
-import { styles } from '@shared/styles/Sales';
+import { styles } from '../styles';
 import { CustomerSearchModal } from './CustomerSearchModal';
 import { CalendarModal } from '@components/CalendarModal';
 import { Customer, Coupon, Service, SalesRegisterModalProps } from '../types/sales.types';

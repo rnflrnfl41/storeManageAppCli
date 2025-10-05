@@ -1,8 +1,8 @@
 import React from 'react';
-import { Modal, View, StyleSheet, TextInput, ScrollView, TouchableOpacity } from 'react-native';
+import { Modal, View, TextInput, ScrollView, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
-import { styles } from '@styles/Sales';
+import { styles } from '../styles';
 import { useState, useMemo, useEffect } from 'react';
 import { Customer, CustomerSearchModalProps } from '../types/sales.types';
 import { axiosInstance } from '@services/apiClient';
