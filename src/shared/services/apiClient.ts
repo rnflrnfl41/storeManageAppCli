@@ -1,4 +1,3 @@
-import { DEFAULT_TIMEOUT } from "@shared/constants";
 import type { ApiErrorResponse } from "@shared/types";
 import { store } from "@store/index";
 import { startLoading, stopLoading } from "@store/loadingSlice";
@@ -26,6 +25,8 @@ import DeviceInfo from 'react-native-device-info';
 // 기기 타입에 따른 API URL 반환
 let cachedUrl: string | null = null;
 let isInitialized = false;
+
+export const DEFAULT_TIMEOUT = 10000;
 
 const getApiUrl = async (): Promise<string> => {
   if (!isInitialized) {
