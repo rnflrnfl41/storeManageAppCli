@@ -6,39 +6,12 @@ export interface UserInfo {
   userName: string;
 }
 
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data: T;
-  message?: string;
-  code?: string;
-}
-
 export interface ApiErrorResponse {
   success: false;
   message: string;
   code?: string;
   errors?: Record<string, string[]>;
 }
-
-export interface PaginationParams {
-  page: number;
-  limit: number;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export type RootStackParamList = {
-  Login: undefined;
-  Main: undefined;
-  Details: { id: string };
-  // 필요시 다른 스크린 추가
-};
 
 export type AppStackParamList = {
   Login: undefined;
