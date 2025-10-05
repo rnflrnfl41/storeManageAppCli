@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { borderRadius, colors, shadows, spacing } from './common';
+import { borderRadius, colors, shadows, spacing } from '@shared/styles/common';
 
 // Login 기본 스타일
 export const loginStyles = StyleSheet.create({

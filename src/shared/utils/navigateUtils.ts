@@ -1,5 +1,4 @@
 import { createNavigationContainerRef } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppStackParamList } from '@types';
 
 // Navigation ref 생성

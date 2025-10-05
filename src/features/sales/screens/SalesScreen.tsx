@@ -15,7 +15,7 @@ import { LineChart } from 'react-native-chart-kit';
 import { SalesDetailModal } from '../components/SalesDetailModal';
 import { SalesRegisterModal } from '../components/SalesRegisterModal';
 import { showConfirm } from '@utils/alertUtils';
-import { styles } from '@styles/Sales';
+import { styles } from '../styles';
 import { Customer, Coupon, Service, SalesData, Sales } from '../types/sales.types';
 import { useSalesData } from '../hooks/useSalesData';
 import { salesService } from '../services/salesService';

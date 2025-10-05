@@ -2,22 +2,8 @@
 export * from './auth';
 export * from './home';
 export * from './expense';
+export * from './customer';
 
-// Customer exports - exclude Coupon to avoid conflicts
-export { CustomerScreen, CustomerDetailModal, CustomerModal } from './customer';
-export type { 
-  CustomerBasic, 
-  Service as CustomerService, 
-  ServiceHistory, 
-  ServiceHistoryDto, 
-  ServiceItemDto, 
-  CouponDto, 
-  CustomerBenefitResponse, 
-  Coupon as CustomerCoupon, 
-  CustomerDetail, 
-  CustomerModalProps, 
-  CustomerDetailModalProps 
-} from './customer';
 
 // Coupon exports - exclude Coupon to avoid conflicts  
 export { CouponScreen } from './coupon';

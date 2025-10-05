@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AddScheduleModal } from '../components/AddScheduleModal';
 import { CalendarModal } from '@components/CalendarModal';
 import '@config/calendarConfig';
-import { homeScreenStyles } from '@shared/styles/HomeScreenStyles';
+import { homeScreenStyles } from '../styles';
 
 import { ThemedText } from '@components/ThemedText';
 import { logout } from '@services/authService';
