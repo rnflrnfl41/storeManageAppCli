@@ -16,23 +16,12 @@ import { LoadingDots } from '@components';
 import { useOrientation } from '@hooks/useOrientation';
 import { publicAxiosInstance } from '@services/apiClient';
 import { tokenManager } from '@services/tokenManager';
-import type { LoginRequest } from '@shared/types';
-import { createResponsiveLoginStyles, loginStyles } from '@styles';
+import { createResponsiveLoginStyles, loginStyles } from '../styles';
 import { setUserInfo } from '@services/authService';
 import { TextInput } from '@components/CustomTextInput';
+import { LoginRequest, FormState, FormErrors } from '../types';
 
 const { width } = Dimensions.get('window');
-
-type FormState = {
-  userId: string;
-  password: string;
-  rememberMe: boolean;
-};
-
-type FormErrors = {
-  userId?: string;
-  password?: string;
-};
 
 export default function Login() {
 

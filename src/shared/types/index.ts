@@ -6,11 +6,6 @@ export interface UserInfo {
   userName: string;
 }
 
-export interface LoginRequest {
-  loginId: string;
-  password: string;
-}
-
 export interface ApiResponse<T = any> {
   success: boolean;
   data: T;
