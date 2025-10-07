@@ -11,7 +11,6 @@ export interface ExpenseCategory {
 export interface Expense {
   memo: string;
   expenseDate: string;
-  categoryId: string;
   categoryName: string;
   amount: number;
 }

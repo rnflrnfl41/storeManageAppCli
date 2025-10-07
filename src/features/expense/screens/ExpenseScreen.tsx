@@ -75,7 +75,6 @@ export default function ExpenseScreen() {
     const expenseData = {
       memo: payload.memo,
       expenseDate: payload.expenseDate,
-      categoryId: payload.category.id,
       categoryName: payload.category.name,
       amount: payload.amount,
     };
