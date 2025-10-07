@@ -7,6 +7,9 @@ import { AddScheduleModal } from '../components/AddScheduleModal';
 import { CalendarModal } from '@components/CalendarModal';
 import '@config/calendarConfig';
 import { homeScreenStyles } from '../styles';
+import { ExpenseRegisterModal } from '@features/expense/components/ExpenseRegisterModal';
+import { ExpenseCategory } from '@features/expense/types/expense.types';
+import { expenseService } from '@features/expense/services/expenseService';
 
 import { ThemedText } from '@components/ThemedText';
 import { logout } from '@services/authService';
@@ -25,13 +28,14 @@ interface Schedule {
 export default function HomeScreen() {
   const { width } = Dimensions.get('window');
   const isTablet = width >= 768;
-  
+
 
   const [userName, setUserName] = useState('사용자');
   const [storeName, setStoreName] = useState('Hair City');
 
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [expenseVisible, setExpenseVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAllSchedules, setShowAllSchedules] = useState(false);
   const [calendarVisible, setCalendarVisible] = useState(false);
@@ -68,6 +72,32 @@ export default function HomeScreen() {
       console.log('오늘 매출 불러오기 실패:', error);
     }
   }
+
+  const handleExpenseSubmit = async (payload: {
+      category: ExpenseCategory;
+      amount: number;
+      memo: string;
+      expenseDate: string;
+    }) => {
+      // 실제 저장용 Expense 데이터 생성
+      const expenseData = {
+        memo: payload.memo,
+        expenseDate: payload.expenseDate,
+        categoryName: payload.category.name,
+        amount: payload.amount,
+      };
+  
+      try {
+        // API 호출로 지출 등록
+        await expenseService.registerExpense(expenseData);
+        
+        // 모달 닫기
+        setExpenseVisible(false);
+      } catch (error) {
+        console.error('지출 등록 실패:', error);
+        throw error; // 에러를 다시 throw하여 모달이 닫히지 않도록 함
+      }
+    };
 
 
 
@@ -119,9 +149,9 @@ export default function HomeScreen() {
    * 지정된 ID의 일정의 완료 상태를 토글 (완료 ↔ 미완료)
    */
   const handleToggleComplete = (scheduleId: string) => {
-    setSchedules(prev => 
-      prev.map(schedule => 
-        schedule.id === scheduleId 
+    setSchedules(prev =>
+      prev.map(schedule =>
+        schedule.id === scheduleId
           ? { ...schedule, completed: !schedule.completed }
           : schedule
       )
@@ -141,7 +171,7 @@ export default function HomeScreen() {
   const getSelectedDateSchedules = () => {
     const selectedDateString = selectedDate.toDateString();
     return schedules
-      .filter(schedule => 
+      .filter(schedule =>
         new Date(schedule.date).toDateString() === selectedDateString
       )
       .sort((a, b) => {
@@ -191,8 +221,8 @@ export default function HomeScreen() {
           {/* 헤더 영역 */}
           <View style={homeScreenStyles.header}>
             <View style={homeScreenStyles.storeInfo}>
-              <Image 
-                source={require('@assets/haircity-logo.png')} 
+              <Image
+                source={require('@assets/haircity-logo.png')}
                 style={homeScreenStyles.logo}
                 resizeMode="contain"
               />
@@ -219,7 +249,7 @@ export default function HomeScreen() {
           <View style={homeScreenStyles.quickMenuCard}>
             <ThemedText style={homeScreenStyles.quickMenuTitle}>Quick Menu</ThemedText>
             <View style={homeScreenStyles.quickMenuGrid}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={homeScreenStyles.quickMenuItem}
                 onPress={() => console.log('매출 등록')}
               >
@@ -229,7 +259,7 @@ export default function HomeScreen() {
                 <ThemedText style={homeScreenStyles.quickMenuLabel}>매출 등록</ThemedText>
               </TouchableOpacity>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={homeScreenStyles.quickMenuItem}
                 onPress={() => console.log('고객 등록')}
               >
@@ -239,9 +269,9 @@ export default function HomeScreen() {
                 <ThemedText style={homeScreenStyles.quickMenuLabel}>고객 등록</ThemedText>
               </TouchableOpacity>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={homeScreenStyles.quickMenuItem}
-                onPress={() => console.log('지출 등록')}
+                onPress={() => setExpenseVisible(true)}
               >
                 <View style={[homeScreenStyles.quickMenuIcon, { backgroundColor: '#FF5722' }]}>
                   <Ionicons name="card" size={isTablet ? 32 : 24} color="white" />
@@ -255,22 +285,22 @@ export default function HomeScreen() {
           <View style={homeScreenStyles.calendarCard}>
             <View style={homeScreenStyles.calendarHeader}>
               <ThemedText style={homeScreenStyles.calendarTitle}>일정</ThemedText>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={homeScreenStyles.addScheduleButton}
                 onPress={handleAddSchedule}
               >
                 <Ionicons name="add" size={isTablet ? 24 : 20} color="#007AFF" />
               </TouchableOpacity>
             </View>
-            
+
             <View style={homeScreenStyles.dateNavigation}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={homeScreenStyles.dateNavButton}
                 onPress={() => handleDateChange('prev')}
               >
                 <Ionicons name="chevron-back" size={isTablet ? 24 : 20} color="#007AFF" />
               </TouchableOpacity>
-              
+
               <View style={homeScreenStyles.dateDisplay}>
                 <View style={homeScreenStyles.dateContainer}>
                   <TouchableOpacity onPress={openCalendar}>
@@ -283,8 +313,8 @@ export default function HomeScreen() {
                   )}
                 </View>
               </View>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={homeScreenStyles.dateNavButton}
                 onPress={() => handleDateChange('next')}
               >
@@ -321,10 +351,10 @@ export default function HomeScreen() {
                             ]}
                             onPress={() => handleToggleComplete(schedule.id)}
                           >
-                            <Ionicons 
-                              name="checkmark" 
-                              size={18} 
-                              color={schedule.completed ? "white" : "#4CAF50"} 
+                            <Ionicons
+                              name="checkmark"
+                              size={18}
+                              color={schedule.completed ? "white" : "#4CAF50"}
                             />
                           </TouchableOpacity>
                           <TouchableOpacity
@@ -338,17 +368,17 @@ export default function HomeScreen() {
                     ))
                   }
                   {getSelectedDateSchedules().length > 3 && (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={homeScreenStyles.showMoreButton}
                       onPress={() => setShowAllSchedules(!showAllSchedules)}
                     >
                       <ThemedText style={homeScreenStyles.showMoreText}>
                         {showAllSchedules ? '접기' : '더보기'}
                       </ThemedText>
-                      <Ionicons 
-                        name={showAllSchedules ? "chevron-up" : "chevron-down"} 
-                        size={20} 
-                        color="#007AFF" 
+                      <Ionicons
+                        name={showAllSchedules ? "chevron-up" : "chevron-down"}
+                        size={20}
+                        color="#007AFF"
                       />
                     </TouchableOpacity>
                   )}
@@ -357,7 +387,7 @@ export default function HomeScreen() {
                 <View style={homeScreenStyles.noSchedule}>
                   <Ionicons name="calendar-outline" size={40} color="#8E8E93" />
                   <ThemedText style={homeScreenStyles.noScheduleText}>이 날짜에 예정된 일정이 없습니다</ThemedText>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={homeScreenStyles.addFirstSchedule}
                     onPress={handleAddSchedule}
                   >
@@ -386,6 +416,12 @@ export default function HomeScreen() {
             setCalendarVisible(false);
             setShowAllSchedules(false);
           }}
+        />
+
+        <ExpenseRegisterModal
+          visible={expenseVisible}
+          onClose={() => setExpenseVisible(false)}
+          onSubmit={handleExpenseSubmit}
         />
 
 
