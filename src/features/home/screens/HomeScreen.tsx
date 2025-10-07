@@ -11,6 +11,7 @@ import { homeScreenStyles } from '../styles';
 import { ThemedText } from '@components/ThemedText';
 import { logout } from '@services/authService';
 import { router } from '@utils/navigateUtils';
+import { axiosInstance } from '@/src/shared';
 
 
 interface Schedule {
@@ -34,9 +35,11 @@ export default function HomeScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAllSchedules, setShowAllSchedules] = useState(false);
   const [calendarVisible, setCalendarVisible] = useState(false);
+  const [todaySales, setTodaySales] = useState(0);
 
   useEffect(() => {
     loadUserData();
+    getTodaySales();
   }, []);
 
   /**
@@ -54,6 +57,17 @@ export default function HomeScreen() {
       console.log('사용자 이름 로드 실패:', error);
     }
   };
+
+  const getTodaySales = async () => {
+    try {
+      const response = await axiosInstance.get('/sales/summary/today');
+      console.log('오늘 매출 데이터:', response.data);
+      setTodaySales(response.data);
+    } catch (error) {
+      setTodaySales(0);
+      console.log('오늘 매출 불러오기 실패:', error);
+    }
+  }
 
 
 
@@ -161,15 +175,6 @@ export default function HomeScreen() {
   };
 
   /**
-   * 캘린더에서 날짜 선택 시 호출
-   */
-  const handleCalendarDateSelect = (day: any) => {
-    setSelectedDate(new Date(day.dateString));
-    setCalendarVisible(false);
-    setShowAllSchedules(false);
-  };
-
-  /**
    * 날짜를 한국어 형식으로 포맷팅 (ex: 1월 15일 (금))
    */
   const formatDate = (date: Date) => {
@@ -207,7 +212,7 @@ export default function HomeScreen() {
           {/* 오늘 매출 카드 */}
           <View style={homeScreenStyles.salesCard}>
             <ThemedText style={homeScreenStyles.salesLabel}>오늘 매출</ThemedText>
-            <ThemedText style={homeScreenStyles.salesValue}>₩0</ThemedText>
+            <ThemedText style={homeScreenStyles.salesValue}>₩{todaySales.toLocaleString()}</ThemedText>
           </View>
 
           {/* Quick Menu */}
