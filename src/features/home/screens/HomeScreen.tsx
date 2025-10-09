@@ -10,6 +10,9 @@ import { homeScreenStyles } from '../styles';
 import { ExpenseRegisterModal } from '@features/expense/components/ExpenseRegisterModal';
 import { ExpenseCategory } from '@features/expense/types/expense.types';
 import { expenseService } from '@features/expense/services/expenseService';
+import CustomerModal from '@features/customer/components/CustomerModal';
+import { CustomerBasic } from '@features/customer/types/customerTypes';
+import { showSuccess } from '@shared/utils/alertUtils';
 
 import { ThemedText } from '@components/ThemedText';
 import { logout } from '@services/authService';
@@ -36,6 +39,7 @@ export default function HomeScreen() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [expenseVisible, setExpenseVisible] = useState(false);
+  const [customerVisible, setCustomerVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAllSchedules, setShowAllSchedules] = useState(false);
   const [calendarVisible, setCalendarVisible] = useState(false);
@@ -74,31 +78,42 @@ export default function HomeScreen() {
   }
 
   const handleExpenseSubmit = async (payload: {
-      category: ExpenseCategory;
-      amount: number;
-      memo: string;
-      expenseDate: string;
-    }) => {
-      // 실제 저장용 Expense 데이터 생성
-      const expenseData = {
-        memo: payload.memo,
-        expenseDate: payload.expenseDate,
-        categoryName: payload.category.name,
-        amount: payload.amount,
-      };
-  
-      try {
-        // API 호출로 지출 등록
-        await expenseService.registerExpense(expenseData);
-        
-        // 모달 닫기
-        setExpenseVisible(false);
-      } catch (error) {
-        console.error('지출 등록 실패:', error);
-        throw error; // 에러를 다시 throw하여 모달이 닫히지 않도록 함
-      }
+    category: ExpenseCategory;
+    amount: number;
+    memo: string;
+    expenseDate: string;
+  }) => {
+    // 실제 저장용 Expense 데이터 생성
+    const expenseData = {
+      memo: payload.memo,
+      expenseDate: payload.expenseDate,
+      categoryName: payload.category.name,
+      amount: payload.amount,
     };
 
+    try {
+      // API 호출로 지출 등록
+      await expenseService.registerExpense(expenseData);
+
+      // 모달 닫기
+      setExpenseVisible(false);
+    } catch (error) {
+      console.error('지출 등록 실패:', error);
+      throw error; // 에러를 다시 throw하여 모달이 닫히지 않도록 함
+    }
+  };
+
+  const handleCustomerSubmit = async (customerData: CustomerBasic) => {
+    try {
+      const requestData = { name: customerData.name, phone: customerData.phone };
+      await axiosInstance.post('/customer', requestData);
+      showSuccess("고객 등록 완료");
+      return true; // 성공 반환
+    } catch (error) {
+      console.error('고객 등록 실패:', error);
+      return false; // 실패 반환
+    }
+  };
 
 
   /**
@@ -261,7 +276,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity
                 style={homeScreenStyles.quickMenuItem}
-                onPress={() => console.log('고객 등록')}
+                onPress={() => setCustomerVisible(true)}
               >
                 <View style={[homeScreenStyles.quickMenuIcon, { backgroundColor: '#2196F3' }]}>
                   <Ionicons name="person-add" size={isTablet ? 32 : 24} color="white" />
@@ -422,6 +437,12 @@ export default function HomeScreen() {
           visible={expenseVisible}
           onClose={() => setExpenseVisible(false)}
           onSubmit={handleExpenseSubmit}
+        />
+
+        <CustomerModal
+          visible={customerVisible}
+          onClose={() => setCustomerVisible(false)}
+          onSave={handleCustomerSubmit}
         />
 
 
