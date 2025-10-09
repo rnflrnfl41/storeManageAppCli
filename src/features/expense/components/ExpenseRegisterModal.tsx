@@ -15,8 +15,6 @@ import { CalendarModal } from '@components';
 import { ExpenseRegisterModalProps, ExpenseCategory, DEFAULT_EXPENSE_CATEGORIES } from '../types/expense.types';
 import { expenseModalStyles } from '../styles';
 
-const screenWidth = Dimensions.get('window').width;
-
 export const ExpenseRegisterModal: React.FC<ExpenseRegisterModalProps> = ({
   visible,
   onClose,

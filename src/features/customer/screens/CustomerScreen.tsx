@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Alert, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@components/ThemedText';
@@ -17,6 +17,7 @@ export default function CustomerScreen() {
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<CustomerBasic | undefined>();
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerBasic | undefined>();
+  const [refreshing, setRefreshing] = useState(false);
 
   const filteredCustomers = customers
     .filter(customer => customer.name.includes(searchText) || customer.phone.includes(searchText))
@@ -32,6 +33,18 @@ export default function CustomerScreen() {
       setCustomers(response.data.sort((a: CustomerBasic, b: CustomerBasic) => a.name.localeCompare(b.name)));
     } catch (error) {
       console.error('고객 목록 조회 실패:', error);
+    }
+  };
+
+  // Pull-to-refresh 핸들러
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchCustomers();
+    } catch (error) {
+      console.error('새로고침 실패:', error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -137,6 +150,12 @@ export default function CustomerScreen() {
       <ScrollView
         style={styles.customerList}
         contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
       >
         {filteredCustomers.map((customer) => (
           <TouchableOpacity
