@@ -77,7 +77,7 @@ export default function CustomerModal({ visible, customer, onClose, onSave }: Cu
     }
 
     const customerData = {
-      id: customer?.id || Date.now().toString(),
+      id: customer?.id || Date.now(),
       name: name.trim(),
       phone: phone.trim(),
       lastVisit: customer?.lastVisit || null
