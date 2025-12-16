@@ -9,6 +9,7 @@ import { TextInput } from '@components/CustomTextInput';
 import { axiosInstance } from '@services/apiClient';
 import { showSuccess, showError, showConfirm } from '@shared/utils/alertUtils';
 import { CustomerBasic } from '../types/customerTypes';
+import { refreshEvents } from '@shared/utils/refreshEvents';
 
 export default function CustomerScreen() {
   const [customers, setCustomers] = useState<CustomerBasic[]>([]);
@@ -25,6 +26,13 @@ export default function CustomerScreen() {
 
   useEffect(() => {
     fetchCustomers();
+
+    // 고객 관련 이벤트 구독
+    const unsubscribe = refreshEvents.subscribe('customer', () => {
+      fetchCustomers();
+    });
+
+    return unsubscribe;
   }, []);
 
   const fetchCustomers = async () => {
@@ -63,6 +71,10 @@ export default function CustomerScreen() {
           showSuccess("고객 등록 완료");
           setCustomers(prev => [...prev, response.data].sort((a, b) => a.name.localeCompare(b.name)));
         }
+        
+        // 고객 변경 이벤트 발생 (다른 탭에서도 업데이트되도록)
+        refreshEvents.emit('customer');
+        
         return true;
       }
       return false;
@@ -117,6 +129,9 @@ export default function CustomerScreen() {
     
     if (confirmed) {
       await deleteCustomer(id);
+      
+      // 고객 변경 이벤트 발생 (다른 탭에서도 업데이트되도록)
+      refreshEvents.emit('customer');
     }
   };
 

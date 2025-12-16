@@ -13,11 +13,15 @@ import { expenseService } from '@features/expense/services/expenseService';
 import CustomerModal from '@features/customer/components/CustomerModal';
 import { CustomerBasic } from '@features/customer/types/customerTypes';
 import { showSuccess } from '@shared/utils/alertUtils';
+import { SalesRegisterModal } from '@features/sales/components/SalesRegisterModal';
+import { Customer, Coupon, Service, Sales } from '@features/sales/types/sales.types';
+import { salesService } from '@features/sales/services/salesService';
 
 import { ThemedText } from '@components/ThemedText';
 import { logout } from '@services/authService';
 import { router } from '@utils/navigateUtils';
 import { axiosInstance } from '@/src/shared';
+import { refreshEvents } from '@shared/utils/refreshEvents';
 
 
 interface Schedule {
@@ -40,6 +44,7 @@ export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [expenseVisible, setExpenseVisible] = useState(false);
   const [customerVisible, setCustomerVisible] = useState(false);
+  const [salesVisible, setSalesVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAllSchedules, setShowAllSchedules] = useState(false);
   const [calendarVisible, setCalendarVisible] = useState(false);
@@ -48,6 +53,13 @@ export default function HomeScreen() {
   useEffect(() => {
     loadUserData();
     getTodaySales();
+
+    // 모든 변경 이벤트 구독 (오늘 매출 업데이트용)
+    const unsubscribe = refreshEvents.subscribe('all', () => {
+      getTodaySales();
+    });
+
+    return unsubscribe;
   }, []);
 
   /**
@@ -95,6 +107,9 @@ export default function HomeScreen() {
       // API 호출로 지출 등록
       await expenseService.registerExpense(expenseData);
 
+      // 지출 변경 이벤트 발생 (다른 탭에서도 업데이트되도록)
+      refreshEvents.emit('expense');
+
       // 모달 닫기
       setExpenseVisible(false);
     } catch (error) {
@@ -108,10 +123,61 @@ export default function HomeScreen() {
       const requestData = { name: customerData.name, phone: customerData.phone };
       await axiosInstance.post('/customer', requestData);
       showSuccess("고객 등록 완료");
+      
+      // 고객 변경 이벤트 발생 (다른 탭에서도 업데이트되도록)
+      refreshEvents.emit('customer');
+      
       return true; // 성공 반환
     } catch (error) {
       console.error('고객 등록 실패:', error);
       return false; // 실패 반환
+    }
+  };
+
+  const handleSalesSubmit = async (payload: {
+    customer: Customer | null | 'guest';
+    services: Service[];
+    serviceAmounts: { [key: string]: number };
+    coupon: Coupon | null;
+    usedPoints: number;
+    paymentMethod: 'card' | 'cash';
+    totalAmount: number;
+    finalAmount: number;
+    visitDate: string;
+    visitTime: string;
+  }) => {
+    // 실제 저장용 Sales 데이터 생성
+    const salesData: Sales = {
+      memo: payload.services.map(s => s.name).join(', '), // 서비스 이름들을 메모로 사용
+      visitDate: payload.visitDate,
+      visitTime: payload.visitTime,
+      customerId: payload.customer === 'guest' ? 0 : parseInt(payload.customer?.id || '0'),
+      customerName: payload.customer === 'guest' ? 'guest' : payload.customer?.name || '',
+      totalServiceAmount: payload.totalAmount,
+      discountAmount: Math.max(0, payload.totalAmount - payload.finalAmount),
+      finalServiceAmount: payload.finalAmount,
+      serviceList: payload.services.map(service => ({
+        name: service.name,
+        price: payload.serviceAmounts[service.id] || service.basePrice
+      })),
+      paymentMethod: payload.paymentMethod,
+      usedPoint: payload.usedPoints,
+      usedCouponId: payload.coupon?.id || '',
+      usedCouponName: payload.coupon?.name || ''
+    };
+
+    try {
+      // API 호출로 매출 등록
+      await salesService.registerSales(salesData);
+      
+      // 매출 변경 이벤트 발생 (다른 탭에서도 업데이트되도록)
+      refreshEvents.emit('sales');
+      
+      // 모달 닫기
+      setSalesVisible(false);
+    } catch (error) {
+      console.error('매출 등록 실패:', error);
+      throw error; // 에러를 다시 throw하여 모달이 닫히지 않도록 함
     }
   };
 
@@ -266,7 +332,7 @@ export default function HomeScreen() {
             <View style={homeScreenStyles.quickMenuGrid}>
               <TouchableOpacity
                 style={homeScreenStyles.quickMenuItem}
-                onPress={() => console.log('매출 등록')}
+                onPress={() => setSalesVisible(true)}
               >
                 <View style={[homeScreenStyles.quickMenuIcon, { backgroundColor: '#4CAF50' }]}>
                   <Ionicons name="cash" size={isTablet ? 32 : 24} color="white" />
@@ -445,6 +511,11 @@ export default function HomeScreen() {
           onSave={handleCustomerSubmit}
         />
 
+        <SalesRegisterModal
+          visible={salesVisible}
+          onClose={() => setSalesVisible(false)}
+          onSubmit={handleSalesSubmit}
+        />
 
       </View>
     </SafeAreaView>
