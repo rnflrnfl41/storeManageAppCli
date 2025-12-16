@@ -18,6 +18,7 @@ import { ThemedText } from '@components/ThemedText';
 import { logout } from '@services/authService';
 import { router } from '@utils/navigateUtils';
 import { axiosInstance } from '@/src/shared';
+import { refreshEvents } from '@shared/utils/refreshEvents';
 
 
 interface Schedule {
@@ -48,6 +49,13 @@ export default function HomeScreen() {
   useEffect(() => {
     loadUserData();
     getTodaySales();
+
+    // 모든 변경 이벤트 구독 (오늘 매출 업데이트용)
+    const unsubscribe = refreshEvents.subscribe('all', () => {
+      getTodaySales();
+    });
+
+    return unsubscribe;
   }, []);
 
   /**
@@ -95,6 +103,9 @@ export default function HomeScreen() {
       // API 호출로 지출 등록
       await expenseService.registerExpense(expenseData);
 
+      // 지출 변경 이벤트 발생 (다른 탭에서도 업데이트되도록)
+      refreshEvents.emit('expense');
+
       // 모달 닫기
       setExpenseVisible(false);
     } catch (error) {
@@ -108,6 +119,10 @@ export default function HomeScreen() {
       const requestData = { name: customerData.name, phone: customerData.phone };
       await axiosInstance.post('/customer', requestData);
       showSuccess("고객 등록 완료");
+      
+      // 고객 변경 이벤트 발생 (다른 탭에서도 업데이트되도록)
+      refreshEvents.emit('customer');
+      
       return true; // 성공 반환
     } catch (error) {
       console.error('고객 등록 실패:', error);

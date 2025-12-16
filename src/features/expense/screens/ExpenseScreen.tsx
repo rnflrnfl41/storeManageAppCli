@@ -20,6 +20,7 @@ import { ExpenseData, ExpenseCategory, DEFAULT_EXPENSE_CATEGORIES } from '../typ
 import { SummaryResponse, ChartResponse } from '@shared/types';
 import { useExpenseData } from '../hooks/useExpenseData';
 import { expenseService } from '../services/expenseService';
+import { refreshEvents } from '@shared/utils/refreshEvents';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -47,7 +48,7 @@ export default function ExpenseScreen() {
   const [tooltip, setTooltip] = useState<{ visible: boolean, x: number, y: number, data: any } | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  // 초기 데이터 로딩
+  // 초기 데이터 로딩 및 이벤트 구독
   useEffect(() => {
     const initializeData = async () => {
       const today = new Date().toISOString().split('T')[0];
@@ -63,7 +64,24 @@ export default function ExpenseScreen() {
     };
 
     initializeData();
-  }, []);
+
+    // 지출 관련 이벤트 구독
+    const unsubscribe = refreshEvents.subscribe('expense', async () => {
+      const today = new Date().toISOString().split('T')[0];
+      try {
+        await Promise.all([
+          loadSummaryData(today),
+          loadChartData('daily'),
+          loadChartData('monthly'),
+          loadExpenseList({ date: selectedDate, page: 0, limit: 5 }),
+        ]);
+      } catch (error) {
+        console.error('이벤트 기반 데이터 새로고침 실패:', error);
+      }
+    });
+
+    return unsubscribe;
+  }, [selectedDate, loadSummaryData, loadChartData, loadExpenseList]);
 
   const handleRegisterSubmit = async (payload: {
     category: ExpenseCategory;
@@ -91,6 +109,9 @@ export default function ExpenseScreen() {
         loadChartData('daily'), // 일별 차트 업데이트
         loadChartData('monthly'), // 월별 차트도 업데이트
       ]);
+      
+      // 지출 변경 이벤트 발생 (다른 탭에서도 업데이트되도록)
+      refreshEvents.emit('expense');
       
       // 모달 닫기
       setModalVisible(false);
@@ -125,6 +146,9 @@ export default function ExpenseScreen() {
           loadChartData('daily'), // 일별 차트 업데이트
           loadChartData('monthly'), // 월별 차트 업데이트
         ]);
+        
+        // 지출 변경 이벤트 발생 (다른 탭에서도 업데이트되도록)
+        refreshEvents.emit('expense');
       } catch (error) {
         console.error('지출 삭제 실패:', error);
       }
