@@ -15,19 +15,26 @@ export const salesService = {
 
   // 차트 데이터 조회
   getChartData: async (params: ChartDataParams): Promise<any> => {
-    const { type, startDate, endDate } = params;
-    const response = await axiosInstance.get(
-      `/sales/chart?type=${type}&startDate=${startDate}&endDate=${endDate}`
-    );
+    const response = await axiosInstance.get('/sales/chart', {
+      params: {
+        type: params.type,
+        startDate: params.startDate,
+        endDate: params.endDate,
+      },
+    });
     return response.data;
   },
 
   // 매출 목록 조회
   getSalesList: async (params: ListParams): Promise<SalesListResponse> => {
     const { date, page = 1, limit = 5 } = params;
-    const response = await axiosInstance.get(
-      `/sales?date=${date}&page=${page}&limit=${limit}`
-    );
+    const response = await axiosInstance.get('/sales', {
+      params: {
+        date,
+        page,
+        limit,
+      },
+    });
     return response.data;
   },
 
