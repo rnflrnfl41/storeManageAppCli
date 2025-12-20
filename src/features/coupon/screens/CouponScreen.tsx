@@ -16,6 +16,7 @@ import CouponModal from '../components/CouponModal';
 import CouponCard from '../components/CouponCard';
 import CustomerSelectModal from '../components/CustomerSelectModal';
 import { couponStyles as styles } from '../styles';
+import { refreshEvents } from '@shared/utils/refreshEvents';
 
 export default function CouponScreen() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -39,6 +40,13 @@ export default function CouponScreen() {
 
   useEffect(() => {
     loadData();
+
+    // 쿠폰 관련 이벤트 구독
+    const unsubscribe = refreshEvents.subscribe('coupon', () => {
+      loadData();
+    });
+
+    return unsubscribe;
   }, []);
 
   useEffect(() => {
@@ -105,6 +113,10 @@ export default function CouponScreen() {
       console.log(couponData);
       await couponService.createCoupon(couponData);
       await loadData();
+      
+      // 쿠폰 변경 이벤트 발생 (다른 탭에서도 업데이트되도록)
+      refreshEvents.emit('coupon');
+      
       return true;
     } catch (error) {
       return false;
@@ -115,6 +127,9 @@ export default function CouponScreen() {
     try {
       await couponService.deleteCoupon(couponId);
       await loadData();
+      
+      // 쿠폰 변경 이벤트 발생 (다른 탭에서도 업데이트되도록)
+      refreshEvents.emit('coupon');
     } catch (error) {
       Alert.alert('오류', '쿠폰 삭제에 실패했습니다.');
     }

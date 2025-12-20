@@ -19,6 +19,8 @@ import { styles } from '../styles';
 import { Customer, Coupon, Service, SalesData, Sales } from '../types/sales.types';
 import { useSalesData } from '../hooks/useSalesData';
 import { salesService } from '../services/salesService';
+import { refreshEvents } from '@shared/utils/refreshEvents';
+import { useEffect } from 'react';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -46,6 +48,24 @@ export default function SalesScreen() {
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [tooltip, setTooltip] = useState<{ visible: boolean, x: number, y: number, data: any } | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+
+  // 이벤트 구독: 매출 변경 시 데이터 새로고침
+  useEffect(() => {
+    const unsubscribe = refreshEvents.subscribe('sales', async () => {
+      const today = new Date().toISOString().split('T')[0];
+      try {
+        await Promise.all([
+          loadSummaryData(today),
+          loadChartData(viewType),
+          loadSalesList(selectedDate, 1, true),
+        ]);
+      } catch (error) {
+        console.error('이벤트 기반 데이터 새로고침 실패:', error);
+      }
+    });
+
+    return unsubscribe;
+  }, [selectedDate, viewType, loadSummaryData, loadChartData, loadSalesList]);
 
   // createdAt에서 날짜 부분만 추출하는 헬퍼 함수
   const getDateFromCreatedAt = (createdAt: string) => createdAt.split(' ')[0];
@@ -93,6 +113,9 @@ export default function SalesScreen() {
         loadChartData('daily'), // 일별 차트도 새로고침
       ]);
       
+      // 매출 변경 이벤트 발생 (다른 탭에서도 업데이트되도록)
+      refreshEvents.emit('sales');
+      
       // 모달 닫기
       setModalVisible(false);
     } catch (error) {
@@ -120,6 +143,9 @@ export default function SalesScreen() {
         await deleteSalesFromAPI(id, selectedDate);
         // 차트 데이터 새로고침 (현재 보기 타입)
         await loadChartData(viewType);
+        
+        // 매출 변경 이벤트 발생 (다른 탭에서도 업데이트되도록)
+        refreshEvents.emit('sales');
       } catch (error) {
         console.error('매출 삭제 실패:', error);
       }
