@@ -23,6 +23,7 @@ class TokenManager {
 
   // 간단한 XOR 암호화 (안정적이고 빠름)
   private async encryptToken(token: string): Promise<string> {
+    //TODO: 암호화 수정 필요
     try {
       // 32자리 16진수 키에서 앞 16자만 사용
       const key = this.encryptionKey.substring(0, 16);
@@ -63,6 +64,7 @@ class TokenManager {
 
   // 액세스 토큰 저장
   async saveAccessToken(token: string): Promise<void> {
+    //TODO: 토큰 저장 공간 수정 필요 예를 들어 keytChain이라던지
     try {
       const encryptedToken = await this.encryptToken(token);
       await AsyncStorage.setItem('accessToken', encryptedToken);
